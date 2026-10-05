@@ -1,0 +1,199 @@
+/* 答案页的照片（15 §11.1–§11.2）：冲印小照片 + 对角两枚老相册相角。倾斜只用 transform，相角用 clip-path 画出，不做动画 */
+
+.slot {
+  position: relative;
+  /* 提问标题是定位元素，会画在浮动之上并截走点击 */
+  z-index: 1;
+}
+
+/* 竖屏：浮在提问右侧，提问文字从左侧绕排；四周留 8 px（倾斜与相角会超出矩形），与文字至少相距 12 px */
+.slot[data-mode="single"] {
+  float: right;
+  margin: 8px 0 8px 12px;
+  padding: 4px 4px 0 8px;
+}
+
+/* 横屏：左页提问下方居中，取代风纹饰 */
+.slot[data-mode="spread"] {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--sp-5);
+  padding: 10px 0 4px;
+}
+
+.photo {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: zoom-in;
+  transform: rotate(var(--tilt));
+  transition: transform var(--dur-micro) var(--ease-soft);
+}
+
+.photo[data-failed] {
+  cursor: default;
+}
+
+/* 焦点环：纸面样式，画在照片矩形上，随照片一起倾斜 */
+.photo:focus-visible {
+  outline: var(--focus-paper);
+  outline-offset: 2px;
+}
+
+.print {
+  position: relative;
+  display: block;
+  padding: 4px;
+  background: var(--paper-50);
+  border: 1px solid var(--ink-edge);
+  border-radius: 1px;
+  /* 投影方向朝下，与上方光源一致 */
+  box-shadow:
+    0 1px 2px rgba(42, 34, 27, 0.18),
+    0 4px 10px -4px rgba(42, 34, 27, 0.22);
+}
+
+/* 悬停时加深的投影：叠加一层，只动画透明度 */
+.print::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 1px;
+  box-shadow: 0 6px 14px -4px rgba(42, 34, 27, 0.3);
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease-soft);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .photo:not([data-failed]):hover {
+    transform: translateY(-1px) rotate(var(--tilt));
+  }
+
+  .photo:not([data-failed]):hover .print::after {
+    opacity: 1;
+  }
+
+  .photo:not([data-failed]):active {
+    transform: rotate(var(--tilt));
+  }
+}
+
+.img {
+  display: block;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--paper-100);
+  color: var(--ink-500);
+}
+
+.slot[data-mode="single"] .img,
+.slot[data-mode="single"] .placeholder {
+  width: calc(var(--photo-w) - 10px);
+  height: calc(var(--photo-h) - 10px);
+  object-fit: cover;
+}
+
+.slot[data-mode="spread"] .print {
+  padding: 6px;
+}
+
+/* 横屏：最大宽度为版心的 64%（版心 = 页宽 − 2 × 10cqw），最大高度为页高的 34%，完整显示 */
+.slot[data-mode="spread"] .img {
+  width: auto;
+  height: auto;
+  max-width: 51.2cqw;
+  max-height: 34cqh;
+  object-fit: contain;
+}
+
+.slot[data-mode="spread"] .placeholder {
+  width: 40cqw;
+  max-height: 34cqh;
+}
+
+/* 显影前的纱层（--paper-100）：默认不可见；显现时由 WAAPI 从 1 淡到 0 */
+.veil {
+  position: absolute;
+  inset: 0;
+  background: var(--paper-100);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 老相册相角：深墨褐的三角小插袋，斜边内侧一道淡金细线；对角两枚（左上、右下），略超出白边包住照片的角。
+   不用 rotate 摆放右下角，免得投影方向跟着转 */
+.corner {
+  --corner: 12px;
+  position: absolute;
+  z-index: 1;
+  width: var(--corner);
+  height: var(--corner);
+  filter: drop-shadow(0 1px 0.6px rgba(20, 12, 4, 0.28));
+  pointer-events: none;
+}
+
+.corner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      var(--corner-dir),
+      transparent calc(50% - 2.2px),
+      var(--photo-corner-line) calc(50% - 2.2px),
+      var(--photo-corner-line) calc(50% - 1.2px),
+      transparent calc(50% - 1.2px)
+    ),
+    linear-gradient(var(--corner-dir), var(--photo-corner-light) 0%, var(--photo-corner-dark) 50%);
+  clip-path: var(--corner-clip);
+}
+
+.corner[data-at="tl"] {
+  --corner-dir: 135deg;
+  --corner-clip: polygon(0 0, 100% 0, 0 100%);
+  top: -2px;
+  left: -2px;
+}
+
+.corner[data-at="br"] {
+  --corner-dir: 315deg;
+  --corner-clip: polygon(100% 0, 100% 100%, 0 100%);
+  right: -2px;
+  bottom: -2px;
+}
+
+.slot[data-mode="spread"] .corner {
+  --corner: 18px;
+}
+
+/* 低矮横屏（页宽 ≤ 280 px）：最大高度降为页高的 28%，相角随之缩小 */
+@container page (max-width: 280px) {
+  .slot[data-mode="spread"] .img,
+  .slot[data-mode="spread"] .placeholder {
+    max-height: 28cqh;
+  }
+
+  .slot[data-mode="spread"] .corner {
+    --corner: 14px;
+  }
+}
+
+.note {
+  margin: 2cqw 0 0;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--ink-500);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo {
+    transition: none;
+  }
+}

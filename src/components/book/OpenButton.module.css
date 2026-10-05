@@ -1,0 +1,107 @@
+/* 「翻开属于你的那页」（08 §3） */
+
+.button {
+  /* 比通用按钮更小、字距更宽，像落款 */
+  --ls: 0.36em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: clamp(14px, 3.8cqw, 16px);
+  line-height: 1.4;
+  letter-spacing: var(--ls);
+  white-space: nowrap;
+  color: var(--gold-300);
+  user-select: none;
+  transition:
+    opacity var(--dur-short) var(--ease-soft),
+    transform var(--dur-micro) var(--ease-soft);
+}
+
+/* 两侧细线 */
+.rule {
+  flex: none;
+  width: clamp(20px, 9cqw, 44px);
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(227, 200, 138, 0.7));
+}
+
+.rule:last-child {
+  background: linear-gradient(to left, transparent, rgba(227, 200, 138, 0.7));
+}
+
+.text {
+  position: relative;
+  /* 字距会在末字后多出一截，用等量缩进抵消 */
+  padding-left: var(--ls);
+}
+
+/* 呼吸光晕：同一段文字的柔光副本，只动画透明度（0.15–0.35） */
+.breath {
+  position: absolute;
+  inset: 0 0 0 var(--ls);
+  color: transparent;
+  text-shadow: 0 0 12px rgb(227, 200, 138);
+  opacity: 0.15;
+  animation: breath 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes breath {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* 禁用态：金色 40%，无光效 */
+.button[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.button[aria-disabled="true"] .breath {
+  animation: none;
+  opacity: 0;
+}
+
+/* 按下：下沉 1 px，高光收敛 */
+.button:not([aria-disabled="true"]):active,
+.button[data-held] {
+  transform: translateY(1px);
+}
+
+.button[data-held] .breath {
+  animation: none;
+  opacity: 0.08;
+}
+
+.button:not([aria-disabled="true"]):active .breath {
+  animation: none;
+  opacity: 0.08;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breath {
+    animation: none;
+    opacity: 0.2;
+  }
+}
+
+@container (max-width: 299px) {
+  .button {
+    --ls: 0.06em;
+    font-size: 14px;
+    padding-inline: 0;
+  }
+
+  .rule {
+    display: none;
+  }
+}

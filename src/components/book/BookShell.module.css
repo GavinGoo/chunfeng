@@ -1,0 +1,120 @@
+/* 书壳与纸页（07 §2、06 §4）。与 Cover.module.css 的书身保持同一套边缘与投影。 */
+
+.block {
+  position: absolute;
+  top: 3px;
+  bottom: -7px;
+  background: var(--cover-950);
+  box-shadow: var(--shadow-book);
+  pointer-events: none;
+}
+
+.rightBlock {
+  left: 0;
+  right: -7px;
+  border-radius: 0 var(--radius-book) var(--radius-book) 0;
+}
+
+.leftBlock {
+  left: -100%;
+  right: 100%;
+  margin-left: -7px;
+  border-radius: var(--radius-book) 0 0 var(--radius-book);
+  opacity: 0;
+  /* 打开：封面越过书脊后左侧页块才出现；合上：随封面离开尽快淡出 */
+  transition: opacity 300ms var(--ease-soft);
+}
+
+.leftBlock[data-visible] {
+  opacity: 1;
+  transition: opacity 500ms var(--ease-soft) 500ms;
+}
+
+/* 服务端渲染（尚无几何）且为竖屏时不显示左侧页块 */
+@media not all and (min-aspect-ratio: 21 / 20) {
+  .leftBlock[data-mode="auto"] {
+    display: none;
+  }
+}
+
+/* 页块切口：纵向细纹，越往下越暗（光从上方来） */
+.edgeRight,
+.edgeLeft {
+  position: absolute;
+  top: 1px;
+  bottom: 4px;
+  width: 6px;
+  background:
+    linear-gradient(to bottom, rgba(255, 250, 238, 0.06), rgba(0, 0, 0, 0.28)),
+    repeating-linear-gradient(to right, var(--paper-300) 0 1px, var(--paper-200) 1px 2px);
+}
+
+.edgeRight {
+  right: 2px;
+  border-radius: 0 1px 1px 0;
+}
+
+.edgeLeft {
+  left: 2px;
+  border-radius: 1px 0 0 1px;
+}
+
+.edgeBottom {
+  position: absolute;
+  bottom: 2px;
+  height: 6px;
+  background:
+    linear-gradient(to right, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.18)),
+    repeating-linear-gradient(to bottom, var(--paper-300) 0 1px, var(--paper-200) 1px 2px);
+}
+
+.rightBlock .edgeBottom {
+  left: 0;
+  right: 4px;
+  border-radius: 0 0 1px 0;
+}
+
+.leftBlock .edgeBottom {
+  left: 4px;
+  right: 0;
+  background:
+    linear-gradient(to left, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.18)),
+    repeating-linear-gradient(to bottom, var(--paper-300) 0 1px, var(--paper-200) 1px 2px);
+  border-radius: 0 0 0 1px;
+}
+
+/* ---------- 纸页 ---------- */
+
+.page {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--paper-100);
+  background-image: var(--shadow-spine-right), url("/textures/paper.webp");
+  background-size:
+    100% 100%,
+    100% 100%;
+  opacity: 0;
+  /* 只有隐藏（合书）时淡出 */
+  transition: opacity 200ms linear;
+  pointer-events: none;
+}
+
+.page[data-side="right"] {
+  left: 0;
+  border-radius: 0 var(--radius-paper) var(--radius-paper) 0;
+}
+
+.page[data-side="left"] {
+  left: -100%;
+  background-image: var(--shadow-spine-left), url("/textures/paper.webp");
+  border-radius: var(--radius-paper) 0 0 var(--radius-paper);
+}
+
+/* 出现时不做过渡：左页在收尾时与封面同一帧交接（封面背面隐藏、纸页露出），随后画布即开始淡出。
+ * 若纸页还在淡入，画布与纸页同时半透明，左页会透出下面近黑的页块，闪一下灰（复盘 2026-10-05-left-page-gray-flash） */
+.page[data-visible] {
+  opacity: 1;
+  transition: none;
+}

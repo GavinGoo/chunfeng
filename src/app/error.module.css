@@ -1,0 +1,47 @@
+/* 错误页（05 §7）：夜色中一张纸页 */
+
+.main {
+  position: relative;
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--sp-6);
+  padding: var(--sp-6) var(--sp-4);
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  width: min(calc(100vw - 32px), 420px);
+  aspect-ratio: 0.68;
+  max-height: calc(100dvh - 160px);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--sp-4);
+  padding: 10%;
+  border-radius: var(--radius-paper);
+  background-color: var(--paper-100);
+  background-image: url("/textures/paper.webp");
+  background-size: 100% 100%;
+  box-shadow: var(--shadow-book);
+  color: var(--ink-900);
+  text-align: center;
+}
+
+.title {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.body {
+  font-size: var(--fs-base);
+  color: var(--ink-700);
+}
+
+.actions {
+  position: relative;
+  z-index: 1;
+}

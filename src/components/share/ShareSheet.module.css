@@ -1,0 +1,369 @@
+/* 分享弹层（12 §4）。暗色遮罩，不用毛玻璃；只对 transform 与 opacity 做动画。 */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.visible {
+  pointer-events: auto;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 3, 8, 0.72);
+  opacity: 0;
+  transition: opacity var(--dur-medium) var(--ease-soft);
+}
+
+.visible .overlay {
+  opacity: 1;
+}
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  color: var(--moon-100);
+  background: linear-gradient(180deg, var(--night-800), var(--night-900));
+  border: 1px solid rgba(227, 200, 138, 0.16);
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  transition:
+    transform var(--dur-medium) var(--ease-soft),
+    opacity var(--dur-medium) var(--ease-soft);
+}
+
+/* ---------- 移动端：底部抽屉 ---------- */
+
+.drawer {
+  align-items: flex-end;
+}
+
+.drawer .panel {
+  width: 100%;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  padding: var(--sp-6) var(--sp-5) calc(var(--sp-5) + env(safe-area-inset-bottom));
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  transform: translateY(100%);
+}
+
+/* 抽屉顶部的小把手（装饰） */
+.drawer .panel::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 36px;
+  height: 3px;
+  margin-left: -18px;
+  border-radius: var(--radius-pill);
+  background: rgba(191, 182, 164, 0.28);
+}
+
+/* ---------- 桌面端：居中弹层 ---------- */
+
+.dialog {
+  align-items: center;
+}
+
+.dialog .panel {
+  max-height: calc(100dvh - 48px);
+  padding: var(--sp-7) var(--sp-7) var(--sp-6);
+  border-radius: 12px;
+  transform: scale(0.98);
+}
+
+/* 入场完成：两种布局共用 */
+.root.visible .panel {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- 标题与关闭 ---------- */
+
+.title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  letter-spacing: var(--ls-subtitle);
+  color: var(--moon-500);
+}
+
+.close {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  color: var(--moon-300);
+  border-radius: var(--radius-pill);
+  transition: color var(--dur-short) var(--ease-soft);
+}
+
+.close:focus-visible {
+  outline: var(--focus-night);
+  outline-offset: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .close:hover {
+    color: var(--moon-100);
+  }
+}
+
+/* ---------- 图片与骨架 ---------- */
+
+.figure {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.frame {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-paper);
+  background: var(--paper-200);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.9);
+}
+
+.drawer .frame {
+  height: min(52dvh, 440px);
+  max-width: 78vw;
+}
+
+.dialog .frame {
+  height: min(64dvh, 600px);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity var(--dur-long) var(--ease-soft);
+  /* 允许 iOS 长按呼出保存菜单 */
+  -webkit-touch-callout: default;
+}
+
+.frame[data-state="loaded"] .image {
+  opacity: 1;
+}
+
+.skeleton {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--paper-100), var(--paper-200));
+}
+
+.sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(244, 236, 220, 0.75) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: sweep 2.4s var(--ease-soft) infinite;
+}
+
+@keyframes sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.failed {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  color: var(--ink-700);
+  font-size: var(--fs-base);
+}
+
+.failed p {
+  margin: 0;
+}
+
+.failed button {
+  color: var(--ink-900);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* ---------- 提示与操作 ---------- */
+
+.hint {
+  margin: 0;
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-body);
+  color: var(--moon-300);
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3) var(--sp-5);
+}
+
+/* 「下载图片」：与主按钮同样的双线金框（<a download> 无法复用 <Button>） */
+.download {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--tap-min);
+  padding: 0 var(--sp-6);
+  font-size: var(--fs-base);
+  color: var(--gold-100);
+  letter-spacing: var(--ls-button);
+  text-indent: var(--ls-button);
+  text-decoration: none;
+  border: 1px solid var(--gold-500);
+  border-radius: var(--radius-paper);
+  transition:
+    opacity var(--dur-short) var(--ease-soft),
+    transform var(--dur-micro) var(--ease-soft);
+}
+
+.download::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(201, 163, 90, 0.55);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.download[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.download:focus-visible {
+  outline: var(--focus-night);
+  outline-offset: var(--focus-night-offset);
+}
+
+.download:active:not([aria-disabled="true"]) {
+  transform: translateY(1px);
+}
+
+.downloadLabel {
+  position: relative;
+}
+
+.manual {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: min(100%, 360px);
+}
+
+.manualLabel {
+  font-size: var(--fs-sm);
+  color: var(--moon-300);
+  text-align: center;
+}
+
+.manualInput {
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: 0 var(--sp-3);
+  font-family: var(--font-numeric);
+  font-size: var(--fs-base);
+  color: var(--moon-100);
+  background: var(--night-950);
+  border: 1px solid rgba(201, 163, 90, 0.4);
+  border-radius: var(--radius-paper);
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.manualInput:focus-visible {
+  outline: var(--focus-night);
+  outline-offset: 2px;
+}
+
+/* 轻提示：底部 1.6 s */
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: var(--sp-4);
+  padding: var(--sp-2) var(--sp-4);
+  font-size: var(--fs-sm);
+  color: var(--moon-100);
+  background: var(--night-950);
+  border: 1px solid rgba(227, 200, 138, 0.22);
+  border-radius: var(--radius-pill);
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  pointer-events: none;
+  transition:
+    opacity var(--dur-short) var(--ease-soft),
+    transform var(--dur-short) var(--ease-soft);
+}
+
+.toast[data-show] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---------- 减少动态效果：只保留 ≤ 200 ms 的透明度过渡 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .panel,
+  .image,
+  .toast {
+    transition: opacity var(--dur-short) linear;
+  }
+
+  .drawer .panel,
+  .dialog .panel {
+    transform: none;
+  }
+
+  .toast,
+  .toast[data-show] {
+    transform: translateX(-50%);
+  }
+
+  .sweep {
+    animation: none;
+    opacity: 0;
+  }
+
+  .download:active:not([aria-disabled="true"]) {
+    transform: none;
+  }
+}
+
+/* 带图答案：分享图中含有用户的图片（15 §12） */
+.photoNote {
+  margin: calc(var(--sp-2) * -1) 0 0;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--moon-500);
+  text-align: center;
+}

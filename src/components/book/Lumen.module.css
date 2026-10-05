@@ -1,0 +1,91 @@
+/* 书内透光与落页微光（09 §5.1）：翻页层之上的一层光幕，只落在打开态的纸页上（overflow: hidden）。
+ * 只动画 opacity 与 transform；减少动态效果时不渲染。 */
+
+.lumen {
+  position: absolute;
+  left: var(--book-x);
+  top: var(--book-y);
+  z-index: 3;
+  width: var(--page-w);
+  height: var(--page-h);
+  overflow: hidden;
+  border-radius: 0 var(--radius-paper) var(--radius-paper) 0;
+  pointer-events: none;
+}
+
+/* 双页：左右两页，书脊在正中 */
+.lumen[data-mode="spread"] {
+  left: calc(var(--book-x) - var(--page-w));
+  width: calc(var(--page-w) * 2);
+  border-radius: var(--radius-paper);
+}
+
+.lumen > * {
+  position: absolute;
+  inset: 0;
+}
+
+/* 透光：从书脊一侧透出的暖光。淡入与背景强度同为 800 ms；进入落页时 300 ms 淡出 */
+.flow {
+  --spine: 0%;
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 300ms linear;
+}
+
+.lumen[data-mode="spread"] .flow {
+  --spine: 50%;
+}
+
+.lumen[data-lumen="flow"] .flow {
+  opacity: 1;
+  transition-duration: 800ms;
+}
+
+/* 呼吸与书后光晕同周期（3.2 s），0.55 ↔ 1。只在透光时运行（16 §3.4）：淡出的 300 ms 里冻结在当前值 */
+.flow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 90% at var(--spine) 50%, rgba(255, 228, 176, 0.2), transparent 70%);
+  animation: lumen-breathe 3.2s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.lumen[data-lumen="flow"] .flow::before {
+  animation-play-state: running;
+}
+
+/* 落页微光：一团暖白光在答案将要出现的地方晕开。单页以提问处 (50%, 30%) 为中心；双页以书脊为中心、横跨两页。
+ * 动画由组件以 WAAPI 播放 */
+.bloom {
+  --at: 50% 30%;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform-origin: var(--at);
+  background: radial-gradient(
+    closest-side at var(--at),
+    rgba(255, 240, 206, 0.32),
+    rgba(255, 240, 206, 0.12) 55%,
+    transparent
+  );
+}
+
+.lumen[data-mode="spread"] .bloom {
+  --at: 50% 50%;
+}
+
+/* 合书或「再翻一次」：光幕立即隐藏 */
+.lumen[data-cut] > * {
+  visibility: hidden;
+}
+
+@keyframes lumen-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}

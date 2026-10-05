@@ -1,0 +1,89 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildJevRequest（03 §3.2） > 请求体快照 1`] = `
+{
+  "model": "jev-1.13-free",
+  "questions": {
+    "best_fwd": {
+      "criteria": {
+        "o1": "brief one",
+        "o2": "brief two",
+        "o3": "brief three",
+        "o4": "brief four",
+      },
+      "instructions": "Which option is the wisest path for the asker to take, given the question in state?",
+      "type": "choice",
+    },
+    "best_rev": {
+      "criteria": {
+        "o1": "brief one",
+        "o2": "brief two",
+        "o3": "brief three",
+        "o4": "brief four",
+      },
+      "instructions": "Which option is the wisest path for the asker to take, given the question in state?",
+      "type": "choice",
+    },
+    "fit_o1": {
+      "criteria": [
+        "Unwise: likely to backfire, or clearly misaligned with the asker's situation and goals",
+        "Questionable: has some merit, but its downsides outweigh its benefits for this asker",
+        "Reasonable: benefits and costs are roughly balanced; acceptable but not compelling",
+        "Wise: well suited to the asker's situation; benefits clearly outweigh manageable downsides",
+        "Excellent: the kind of path a thoughtful advisor would strongly recommend to this asker",
+      ],
+      "instructions": {
+        "option": "brief one",
+        "question": "How wise would it be for the asker to take this option, given the question in state?",
+      },
+      "type": "score",
+    },
+    "fit_o2": {
+      "criteria": [
+        "Unwise: likely to backfire, or clearly misaligned with the asker's situation and goals",
+        "Questionable: has some merit, but its downsides outweigh its benefits for this asker",
+        "Reasonable: benefits and costs are roughly balanced; acceptable but not compelling",
+        "Wise: well suited to the asker's situation; benefits clearly outweigh manageable downsides",
+        "Excellent: the kind of path a thoughtful advisor would strongly recommend to this asker",
+      ],
+      "instructions": {
+        "option": "brief two",
+        "question": "How wise would it be for the asker to take this option, given the question in state?",
+      },
+      "type": "score",
+    },
+    "fit_o3": {
+      "criteria": [
+        "Unwise: likely to backfire, or clearly misaligned with the asker's situation and goals",
+        "Questionable: has some merit, but its downsides outweigh its benefits for this asker",
+        "Reasonable: benefits and costs are roughly balanced; acceptable but not compelling",
+        "Wise: well suited to the asker's situation; benefits clearly outweigh manageable downsides",
+        "Excellent: the kind of path a thoughtful advisor would strongly recommend to this asker",
+      ],
+      "instructions": {
+        "option": "brief three",
+        "question": "How wise would it be for the asker to take this option, given the question in state?",
+      },
+      "type": "score",
+    },
+    "fit_o4": {
+      "criteria": [
+        "Unwise: likely to backfire, or clearly misaligned with the asker's situation and goals",
+        "Questionable: has some merit, but its downsides outweigh its benefits for this asker",
+        "Reasonable: benefits and costs are roughly balanced; acceptable but not compelling",
+        "Wise: well suited to the asker's situation; benefits clearly outweigh manageable downsides",
+        "Excellent: the kind of path a thoughtful advisor would strongly recommend to this asker",
+      ],
+      "instructions": {
+        "option": "brief four",
+        "question": "How wise would it be for the asker to take this option, given the question in state?",
+      },
+      "type": "score",
+    },
+  },
+  "state": {
+    "question": "Should the asker change jobs?",
+    "question_original": "要不要换工作？",
+  },
+}
+`;

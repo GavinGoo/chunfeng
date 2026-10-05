@@ -1,0 +1,173 @@
+/* 附图槽位（15 §10.1）：在题字线左端，与第一行文字垂直居中；热区 44×44 */
+
+.slot {
+  --thumb: 32px;
+  visibility: hidden;
+  position: absolute;
+  left: 0;
+  /* 第一行中线：上内边距 + 半个行高 */
+  top: calc(var(--plate-pad-top, 14px) + 0.8 * var(--plate-fs) - 22px);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  opacity: 0;
+  /* 淡出结束后再隐藏（visibility），对读屏与指针都不存在 */
+  transition:
+    opacity var(--dur-short) var(--ease-soft),
+    visibility 0s linear var(--dur-short);
+  pointer-events: none;
+}
+
+.slot[data-visible] {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition:
+    opacity var(--dur-short) var(--ease-soft),
+    visibility 0s;
+}
+
+.attach {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gold-500);
+  opacity: 0.7;
+  cursor: pointer;
+  transition:
+    opacity var(--dur-micro) linear,
+    color var(--dur-micro) linear;
+}
+
+.attach:hover,
+.attach:focus-visible {
+  color: var(--gold-300);
+  opacity: 1;
+}
+
+.attach:focus-visible,
+.thumb:focus-visible,
+.remove:focus-visible {
+  outline: var(--focus-night);
+  outline-offset: 1px;
+}
+
+.file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.thumbWrap {
+  position: relative;
+  display: block;
+  width: var(--thumb);
+  height: var(--thumb);
+}
+
+.thumb {
+  position: relative;
+  display: block;
+  width: var(--thumb);
+  height: var(--thumb);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--gold-500);
+  border-radius: 2px;
+  background: var(--paper-100);
+  cursor: pointer;
+}
+
+/* 热区扩到 44×44（以缩略图为中心）；与 ✕ 重叠处以 ✕ 优先（✕ 在上层） */
+.thumb::after {
+  content: "";
+  position: absolute;
+  inset: calc((var(--thumb) - 44px) / 2);
+}
+
+.img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--ink-500);
+}
+
+/* 「显影中」：一层 --cover-900 55% 的纱；只做透明度动画 */
+.veil {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 14, 27, 0.55);
+  opacity: 0;
+  transition: opacity var(--dur-long) var(--ease-ink);
+  pointer-events: none;
+}
+
+.slot[data-status="uploading"] .veil,
+.slot[data-status="failed"] .veil {
+  opacity: 1;
+  transition-duration: var(--dur-micro);
+}
+
+.dot {
+  position: absolute;
+  left: 3px;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold-300);
+}
+
+/* ✕：14 px，压在缩略图右上角，底为 --cover-900 的小圆；热区用伪元素扩到 44×44。
+   热区主要向外（右上）扩展，只压住缩略图右上角约 12 px，缩略图的其余部分点击为预览 */
+.remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cover-900);
+  color: var(--gold-300);
+  cursor: pointer;
+}
+
+.remove::after {
+  content: "";
+  position: absolute;
+  inset: -24px -24px -4px -4px;
+}
+
+@container (max-width: 299px) {
+  .slot {
+    --thumb: 28px;
+    left: -5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .veil {
+    transition-duration: var(--dur-short);
+  }
+}

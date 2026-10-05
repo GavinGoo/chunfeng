@@ -1,0 +1,122 @@
+/* 春风 · 设计令牌（06 §2、§3.3、§4、§6）。数值以 06 为唯一事实来源，改动须先改文档。 */
+
+:root {
+  /* ---------- 色彩（06 §2） ---------- */
+  --night-950: #030308;
+  --night-900: #07060f;
+  --night-800: #0e0b1e;
+
+  --moon-100: #ece6d8;
+  --moon-300: #bfb6a4;
+  --moon-500: #8a8373;
+
+  --cover-950: #04070e;
+  --cover-900: #080e1b;
+  --cover-800: #0d1628;
+  --cover-700: #16243f;
+
+  --gold-100: #f5e7c1;
+  --gold-300: #e3c88a;
+  --gold-500: #c9a35a;
+  --gold-700: #8c6a2e;
+
+  --paper-50: #f4ecdc;
+  --paper-100: #efe5d0;
+  --paper-200: #e6d8bc;
+  --paper-300: #d8c6a2;
+
+  --ink-900: #2a221b;
+  --ink-700: #4b3f33;
+  --ink-500: #6b5a48;
+  --ink-line: rgba(42, 34, 27, 0.28);
+  --ink-wash: rgba(42, 34, 27, 0.1);
+  /* 选项行与 U 型说明框的边框（UI 组件边界，WCAG 1.4.11 ≥ 3:1；M4 新增，见 06 §2） */
+  --ink-edge: rgba(42, 34, 27, 0.52);
+
+  --cinnabar-600: #a33b2a;
+  --cinnabar-wash: rgba(163, 59, 42, 0.16);
+  --cinnabar-edge: rgba(163, 59, 42, 0.75);
+
+  --jade-300: #b7dcc8;
+  /* 老相册相角（15 §11.2）：深墨褐皮纸，斜边一道 --gold-300 55% 的细线；装饰，不参与对比度要求 */
+  --photo-corner-light: #4a3a2b;
+  --photo-corner-dark: #2f241a;
+  --photo-corner-line: rgba(227, 200, 138, 0.55);
+
+  /* ---------- 字体（06 §3） ---------- */
+  --font-serif:
+    "Chunfeng UI", "Source Serif 4 Variable", "Noto Serif SC Variable", "Noto Serif SC", "Songti SC",
+    "STSong", "SimSun", serif;
+  --font-numeric: "Source Serif 4 Variable", "Noto Serif SC Variable", serif;
+
+  --fs-xs: 12px;
+  --fs-sm: 14px;
+  --fs-base: 16px;
+  --fs-md: 18px;
+  --fs-lg: 22px;
+  --fs-xl: 28px;
+  --fs-display: clamp(48px, 16cqw, 96px);
+
+  --lh-body: 1.8;
+  --lh-title: 1.35;
+  --ls-body: 0.02em;
+  --ls-subtitle: 0.2em;
+  --ls-button: 0.12em;
+
+  /* ---------- 空间、圆角、阴影（06 §4） ---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+
+  --radius-paper: 2px;
+  --radius-option: 10px;
+  --radius-book: 4px;
+  --radius-pill: 999px;
+
+  /* 书浮于星空（08 §1.1）：贴边接触影 · 近处落影 · 落得更低更大更柔的远影 */
+  --shadow-book:
+    0 1px 2px rgba(0, 0, 0, 0.55), 0 18px 36px -18px rgba(0, 0, 0, 0.6),
+    0 64px 120px -40px rgba(0, 0, 0, 0.92);
+  --shadow-spine-right: linear-gradient(to right, rgba(0, 0, 0, 0.22), transparent 10%);
+  --shadow-spine-left: linear-gradient(to left, rgba(0, 0, 0, 0.22), transparent 10%);
+
+  /* 烫金（06 §5）：配合 background-clip: text 使用。上亮下暗、中腰一道暗线的金属反光 */
+  --gold-foil: linear-gradient(
+    172deg,
+    var(--gold-100),
+    var(--gold-300) 30%,
+    var(--gold-500) 47%,
+    var(--gold-700) 52%,
+    var(--gold-300) 62%,
+    var(--gold-100) 76%,
+    var(--gold-500)
+  );
+  /* 压印：上方暗、下方亮的 1 px 阴影 */
+  --emboss-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55), 0 1px 0 rgba(245, 231, 193, 0.12);
+
+  /* ---------- 动效（06 §6） ---------- */
+  --ease-page: cubic-bezier(0.45, 0.05, 0.25, 1);
+  --ease-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-ink: cubic-bezier(0.3, 0, 0.2, 1);
+
+  --dur-micro: 120ms;
+  --dur-short: 200ms;
+  --dur-medium: 320ms;
+  --dur-long: 600ms;
+  --dur-cover: 1100ms;
+  --dur-bar: 900ms;
+
+  /* 焦点环（06 §7） */
+  --focus-night: 2px solid var(--gold-300);
+  --focus-night-offset: 3px;
+  --focus-paper: 2px solid var(--ink-700);
+  --focus-paper-offset: 2px;
+
+  /* 触控目标下限 */
+  --tap-min: 44px;
+}

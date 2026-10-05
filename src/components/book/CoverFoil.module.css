@@ -1,0 +1,173 @@
+/* 烫金文字（06 §5） */
+
+.foil {
+  position: relative;
+  display: inline-block;
+}
+
+/* 压印：上方暗、下方亮的 1 px 阴影，垫在烫金字面之下 */
+.emboss {
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(245, 231, 193, 0.14);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 字缘微光：静态 text-shadow，不参与动画 */
+.foil[data-glow] .emboss {
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(245, 231, 193, 0.14),
+    0 0 0.12em rgba(227, 200, 138, 0.32),
+    0 0 0.5em rgba(227, 200, 138, 0.12);
+}
+
+.face {
+  position: relative;
+  background: var(--gold-foil);
+  background-size: 100% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 浮雕：方向性的明暗交给滤镜（左上亮、右下暗），压印层只保留字缘微光。
+   滤镜作用在 inline-block 上，各浏览器行为一致 */
+.foil[data-relief] .face {
+  display: inline-block;
+}
+
+.foil[data-relief] .emboss {
+  text-shadow: none;
+}
+
+.foil[data-relief][data-glow] .emboss {
+  text-shadow:
+    0 0 0.12em rgba(227, 200, 138, 0.32),
+    0 0 0.5em rgba(227, 200, 138, 0.12);
+}
+
+/* 哑光金（封面书名）：压暗、收窄明暗跨度，去掉近白的高光带；不发光，只留一圈贴着字缘的暗晕，
+   让金箔「压」进皮面里，而不是浮在上面 */
+.foil[data-matte] .face {
+  background-image: linear-gradient(
+    172deg,
+    #cdb17a,
+    #bb9a5c 30%,
+    #a68548 47%,
+    #8d6e37 52%,
+    #ae8f52 62%,
+    #c2a46b 76%,
+    #a08148
+  );
+}
+
+.foil[data-relief][data-matte] .emboss {
+  text-shadow:
+    0 0 0.04em rgba(0, 0, 0, 0.45),
+    0 0 0.1em rgba(201, 163, 90, 0.1);
+}
+
+/* 滤镜定义：不能 display: none（部分浏览器会让引用失效），只把它收成 0 尺寸 */
+.defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.window {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(105deg, transparent 38%, #000 50%, transparent 62%);
+  mask-image: linear-gradient(105deg, transparent 38%, #000 50%, transparent 62%);
+  transform: translateX(-100%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.glint {
+  position: absolute;
+  inset: 0;
+  color: rgba(255, 246, 222, 0.85);
+  transform: translateX(100%);
+}
+
+/* 哑光金：字面暗，扫光要比亮金更亮才看得出；光带放宽、两侧渐隐，是一片柔光掠过，而不是一道亮线 */
+.foil[data-matte] .window {
+  -webkit-mask-image: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(0, 0, 0, 0.55) 43%,
+    #000 50%,
+    rgba(0, 0, 0, 0.55) 57%,
+    transparent 70%
+  );
+  mask-image: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(0, 0, 0, 0.55) 43%,
+    #000 50%,
+    rgba(0, 0, 0, 0.55) 57%,
+    transparent 70%
+  );
+}
+
+.foil[data-matte] .glint {
+  color: rgba(248, 234, 196, 0.62);
+}
+
+/* 循环：进场后 1.2 s 第一次扫过，之后每 10 s 一次，每次 2.6 s；对称的缓入缓出，光在字面上匀速徐行 */
+.foil[data-sheen="loop"] .window {
+  animation: window-loop 10s 1.2s infinite both;
+}
+
+.foil[data-sheen="loop"] .glint {
+  animation: glint-loop 10s 1.2s infinite both;
+}
+
+@keyframes window-loop {
+  0% {
+    transform: translateX(-100%);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  26%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes glint-loop {
+  0% {
+    transform: translateX(100%);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  26%,
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* 悬停：扫过一次（600 ms），移开时立即复位 */
+@media (hover: hover) and (pointer: fine) {
+  :global([data-foil-hover]:not([aria-disabled="true"]):hover) .foil[data-sheen="hover"] .window {
+    transform: translateX(100%);
+    transition: transform var(--dur-long) var(--ease-soft);
+  }
+
+  :global([data-foil-hover]:not([aria-disabled="true"]):hover) .foil[data-sheen="hover"] .glint {
+    transform: translateX(-100%);
+    transition: transform var(--dur-long) var(--ease-soft);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .window {
+    display: none;
+  }
+}

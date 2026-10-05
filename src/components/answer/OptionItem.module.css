@@ -1,0 +1,247 @@
+/* 选项行与 U 型说明框（11 §4.2） */
+
+/* 外框画在整个条目上：展开时说明区把下边框整体推下去，选项与说明是同一张卡片 */
+.item {
+  --edge: var(--ink-edge);
+  --wash: var(--ink-wash);
+  --wash-deep: rgba(42, 34, 27, 0.025);
+  list-style: none;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-option);
+  overflow: clip;
+}
+
+/* 外框会裁掉按钮自己的焦点环，改画在整张卡片外 */
+.item .option:focus-visible {
+  outline: none;
+}
+
+.item:has(.option:focus-visible) {
+  outline: var(--focus-paper);
+  outline-offset: var(--focus-paper-offset);
+}
+
+.item[data-first] {
+  --edge: var(--cinnabar-edge);
+  --wash: var(--cinnabar-wash);
+  --wash-deep: rgba(163, 59, 42, 0.04);
+}
+
+.option {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: var(--opt-gap, 10px);
+  width: 100%;
+  min-height: var(--opt-min-h, 48px);
+  padding: var(--opt-pad-y, 10px) var(--opt-pad-x, 12px);
+  text-align: left;
+  color: var(--ink-900);
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  background: transparent;
+  transition: transform var(--dur-micro) var(--ease-soft);
+}
+
+/* 按下时只有这一行的内容下沉，外框不动 */
+.option:active {
+  transform: translateY(1px);
+}
+
+/* 占比填充：背景上的一抹淡墨 */
+.fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--p) * 100%);
+  background: linear-gradient(90deg, var(--wash) 0 94%, transparent);
+  transform-origin: left center;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 悬停加深约 20%：叠一层同形的淡墨，只动画透明度 */
+.fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--wash-deep) 0 94%, transparent);
+  opacity: 0;
+  transition: opacity var(--dur-short) var(--ease-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .option:hover .fill::after {
+    opacity: 1;
+  }
+}
+
+.seal,
+.title,
+.pct,
+.chevron {
+  position: relative;
+  z-index: 1;
+}
+
+/* 字母徽记：A 为朱砂小印，B–D 为墨色细圈 */
+.seal {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-500);
+  color: var(--ink-700);
+  font-family: var(--font-numeric);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.item[data-first] .seal {
+  border-color: var(--cinnabar-600);
+  background: var(--cinnabar-600);
+  color: var(--paper-50);
+  box-shadow: inset 0 0 0 1px rgba(244, 236, 220, 0.18);
+}
+
+.title {
+  font-size: var(--opt-size, var(--fs-md));
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+.pct {
+  font-family: var(--font-numeric);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: var(--opt-size, var(--fs-md));
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.item[data-first] .pct {
+  color: var(--cinnabar-600);
+}
+
+.chevron {
+  color: var(--ink-500);
+  transition: transform var(--dur-medium) var(--ease-soft);
+}
+
+.option[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+/* U 型说明框 */
+.panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-medium) var(--ease-soft);
+}
+
+.option[aria-expanded="true"] + .panel {
+  grid-template-rows: 1fr;
+}
+
+.panelClip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 说明区不画边框（外框在 .item 上），只保留与选项不同的底色 */
+.panelBody {
+  position: relative;
+  background: color-mix(in srgb, var(--paper-200) 78%, transparent);
+  padding: 12px 14px 14px;
+  font-size: var(--desc-size, var(--fs-base));
+  line-height: var(--lh-body);
+  color: var(--ink-700);
+  text-align: left;
+}
+
+/* 选项与说明之间的分隔：左右内缩、比外框淡的细虚线，展开时淡入 */
+.panelBody::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline: 12px;
+  border-top: 1px dashed var(--edge);
+  opacity: 0;
+  transition: opacity var(--dur-short) var(--ease-soft);
+  pointer-events: none;
+}
+
+.option[aria-expanded="true"] + .panel .panelBody::before {
+  opacity: 0.6;
+}
+
+/* 手机竖屏的单页（页宽 ≤ 420 px）：收紧行内间距、标题降一级，常见长度的标题一行放得下（11 §2.3 iPhone SE 不滚动） */
+@container page (max-width: 420px) {
+  .option {
+    column-gap: 8px;
+    padding-inline: var(--opt-pad-x, 10px);
+  }
+
+  .seal {
+    width: 20px;
+    height: 20px;
+    font-size: 11.5px;
+  }
+
+  .title {
+    font-size: var(--opt-size-narrow, 15px);
+  }
+
+  .pct {
+    font-size: 16px;
+  }
+
+  .chevron {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* 极窄的页（低矮横屏的双页，页宽 < 280 px）：标题独占第二行，避免被挤成一两个字一行 */
+@container page (max-width: 280px) {
+  .option {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "seal . pct chevron"
+      "title title title title";
+    row-gap: 4px;
+  }
+
+  .seal {
+    grid-area: seal;
+  }
+
+  .title {
+    grid-area: title;
+  }
+
+  .pct {
+    grid-area: pct;
+  }
+
+  .chevron {
+    grid-area: chevron;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option,
+  .chevron,
+  .panel,
+  .panelBody::before {
+    transition-duration: 0ms;
+  }
+
+  .option:active {
+    transform: none;
+  }
+}

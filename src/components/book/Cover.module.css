@@ -1,0 +1,349 @@
+/* 封面（08 §1、§5、§6） */
+
+.cover {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+/* ---------- 书身：背板 + 页块边缘 + 投影（静止，不随封面转动） ---------- */
+
+.body {
+  position: absolute;
+  inset: 3px -7px -7px 3px;
+  border-radius: 2px var(--radius-book) var(--radius-book) 2px;
+  background: var(--cover-950);
+  box-shadow: var(--shadow-book);
+}
+
+/* 书页顶面：封面打开后露出的第一页（舞台接入后由 PageBase 覆盖） */
+.body::before {
+  content: "";
+  position: absolute;
+  inset: -1px 9px 9px -3px;
+  border-radius: 1px 2px 2px 1px;
+  background-color: var(--paper-100);
+  background-image: var(--shadow-spine-right), url("/textures/paper.webp");
+  background-size: auto, cover;
+}
+
+/* 右侧：纸页的切口，纵向细纹；越往下越暗（光从上方来） */
+.edgeRight {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  bottom: 4px;
+  width: 6px;
+  background:
+    linear-gradient(to bottom, rgba(255, 250, 238, 0.06), rgba(0, 0, 0, 0.28)),
+    repeating-linear-gradient(to right, var(--paper-300) 0 1px, var(--paper-200) 1px 2px);
+  border-radius: 0 1px 1px 0;
+}
+
+/* 底部：横向细纹，比右侧更暗 */
+.edgeBottom {
+  position: absolute;
+  left: 1px;
+  right: 4px;
+  bottom: 2px;
+  height: 6px;
+  background:
+    linear-gradient(to right, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.18)),
+    repeating-linear-gradient(to bottom, var(--paper-300) 0 1px, var(--paper-200) 1px 2px);
+  border-radius: 0 0 1px 1px;
+}
+
+/* ---------- 封面板：沿书脊刚性旋转 ---------- */
+
+.board {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+
+.front,
+.back {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px var(--radius-book) var(--radius-book) 2px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  overflow: hidden;
+}
+
+/* 正面：午夜蓝皮革（近黑）。正上方一束柔和的聚光落在题字处，四周压暗 */
+.front {
+  container-type: inline-size;
+  background-color: var(--cover-800);
+  background-image:
+    radial-gradient(
+      120% 70% at 50% 0%,
+      rgba(118, 142, 196, 0.16),
+      rgba(118, 142, 196, 0.05) 45%,
+      transparent 72%
+    ),
+    radial-gradient(140% 105% at 50% 30%, transparent 50%, rgba(0, 0, 0, 0.5)),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.01), rgba(0, 0, 0, 0.3)), url("/textures/leather.webp");
+  background-size:
+    auto,
+    auto,
+    auto,
+    256px 256px;
+  background-blend-mode: normal, normal, normal, multiply;
+  box-shadow:
+    inset 0 1px 0 rgba(196, 210, 238, 0.09),
+    inset -1px 0 0 rgba(0, 0, 0, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* 书脊：左缘圆弧的暗部 + 距左缘 14 px 的压线凹槽 */
+.front::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 26px;
+  /* 圆脊（0–12 px：暗部 + 冷色反光）→ 1.5 px 压槽 → 压槽右唇微微隆起、迎着左上的光，到 24 px 才化入皮面（08 §1.1） */
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.62),
+    rgba(0, 0, 0, 0.16) 7px,
+    rgba(196, 210, 238, 0.05) 11px,
+    transparent 12.5px,
+    rgba(0, 0, 0, 0.6) 13px,
+    rgba(0, 0, 0, 0.5) 14.5px,
+    rgba(196, 210, 238, 0.14) 15.5px,
+    transparent 24px
+  );
+  pointer-events: none;
+}
+
+/* 背面：环衬，纸色底上印极淡的风纹暗花；靠书脊一侧有阴影 */
+.back {
+  transform: rotateY(180deg);
+  background-color: var(--paper-200);
+  background-image:
+    linear-gradient(to left, rgba(0, 0, 0, 0.22), transparent 10%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='132' height='96' viewBox='0 0 132 96'%3E%3Cg fill='none' stroke='%232a221b' stroke-opacity='.075' stroke-width='1.1' stroke-linecap='round'%3E%3Cpath d='M6 28c12-7 24-7 35-2s23 6 33-1c5-3.5 4-9-1-8.5-3.6.4-3.6 4.6-.6 5'/%3E%3Cpath d='M72 76c10-6 20-6 29-1.5s19 5 27-1'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:
+    auto,
+    132px 96px;
+}
+
+/* ---------- 正面内容 ---------- */
+
+.face {
+  --frame-inset: clamp(12px, 4.6cqw, 20px);
+  --frame-inset-left: calc(var(--frame-inset) + 8px);
+  --pad: clamp(18px, 7.2cqw, 36px);
+  position: absolute;
+  inset: 0;
+}
+
+/* 烫金双线框：外线 + 内缩 4 px 的内线，压进皮面（08 §1.1）。金线本身随光向变化（左上亮、右下暗，像金箔随角度反光），
+ * 外侧贴一道 1 px 暗线是压出的凹槽；再经浮雕滤镜给出内缘的明暗（连同角花）。
+ * border-image 不支持圆角，框的圆角只有 1 px，忽略 */
+.frame {
+  --frame-gold: linear-gradient(
+    135deg,
+    #ead39c,
+    var(--gold-300) 22%,
+    var(--gold-500) 55%,
+    var(--gold-700) 82%,
+    #a8884a
+  );
+  position: absolute;
+  inset: var(--frame-inset) var(--frame-inset) var(--frame-inset) var(--frame-inset-left);
+  border: 1px solid;
+  border-image: var(--frame-gold) 1;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.32);
+  pointer-events: none;
+}
+
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid;
+  border-image: var(--frame-gold) 1;
+  opacity: 0.7;
+}
+
+/* 角花只留左上、右下一对，不对称；暗金，不与书名争光 */
+.corner {
+  position: absolute;
+  width: clamp(36px, 14cqw, 64px);
+  height: auto;
+  color: rgba(160, 124, 62, 0.7);
+}
+
+.tl {
+  top: 6px;
+  left: 6px;
+}
+
+.br {
+  right: 6px;
+  bottom: 6px;
+  transform: scale(-1, -1);
+}
+
+/* 右下角压纹风纹：无色压印，让开角花 */
+.wind {
+  position: absolute;
+  right: calc(var(--frame-inset) + clamp(34px, 13cqw, 64px));
+  bottom: calc(var(--frame-inset) + clamp(22px, 8cqw, 40px));
+  width: clamp(64px, 23cqw, 128px);
+  height: auto;
+  pointer-events: none;
+}
+
+.content {
+  position: absolute;
+  inset: calc(var(--frame-inset) + 5px) calc(var(--frame-inset) + 5px) calc(var(--frame-inset) + 5px)
+    calc(var(--frame-inset-left) + 5px);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  justify-items: center;
+}
+
+.titles {
+  justify-self: start;
+  padding: calc(var(--pad) * 0.9) var(--pad) 0;
+}
+
+/* 书名：玄宗体子集「Chunfeng Title」（D20），拉开字距 */
+.title {
+  font-family: "Chunfeng Title", var(--font-serif);
+  font-size: var(--fs-display);
+  font-weight: 400;
+  line-height: var(--lh-title);
+  letter-spacing: 0.16em;
+  margin-left: -0.06em;
+}
+
+/* 副标题：像古籍落款，小字、宽字距 */
+.subtitle {
+  margin-top: 0.9em;
+  /* 落款（08 §2.1）：比打字机小一档、字距更宽、略暗，阅读顺序为书名 → 打字机 → 副标题 */
+  font-size: clamp(12px, 3.3cqw, 15px);
+  font-weight: 400;
+  line-height: var(--lh-title);
+  letter-spacing: 0.5em;
+  opacity: 0.78;
+}
+
+.form {
+  align-self: center;
+  width: 78%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 视觉中心略高于几何中心，给下方风纹留白 */
+  margin-top: -6%;
+  transition: opacity var(--dur-short) var(--ease-soft);
+}
+
+.hint {
+  min-height: 1.7em;
+  margin: var(--sp-2) 0 var(--sp-1);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: rgba(227, 200, 138, 0.85);
+  opacity: 0;
+  transition: opacity var(--dur-long) var(--ease-soft);
+}
+
+.hint[data-visible] {
+  opacity: 1;
+}
+
+/* ---------- 状态 ---------- */
+
+.cover[data-state="submitted"] .form,
+.cover[data-state="hidden"] .form {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cover[data-state="hidden"] .board {
+  visibility: hidden;
+}
+
+/* 封面隐藏时（答案页），里面的无限循环动画（烫金扫光、按钮呼吸）暂停（16 §3.4）。
+ * 用 !important：各组件以 animation 简写声明动画，会把 animation-play-state 重置为 running，选择器也更具体 */
+.cover[data-state="hidden"] *,
+.cover[data-state="hidden"] *::before,
+.cover[data-state="hidden"] *::after {
+  /* biome-ignore lint/complexity/noImportantStyles: 见上方注释 */
+  animation-play-state: paused !important;
+}
+
+/* 首次进场：背景先亮起，书自下方 12 px 淡入上移 */
+.cover[data-entrance] {
+  animation: enter 700ms var(--ease-soft) 300ms backwards;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover[data-entrance] {
+    animation: enter-fade 200ms linear backwards;
+  }
+}
+
+@keyframes enter-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- 紧凑：封面很窄时（低矮横屏，07 §3）字号整体降级 ---------- */
+
+@container (max-width: 299px) {
+  .face {
+    --pad: 6px;
+  }
+
+  .title {
+    font-size: clamp(24px, 16cqw, 48px);
+  }
+
+  .subtitle {
+    margin-top: 0.2em;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+
+  .form {
+    width: 92%;
+    margin-top: 0;
+  }
+
+  .hint {
+    min-height: 1.4em;
+    margin: 2px 0 0;
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+  }
+
+  .wind,
+  .corner {
+    opacity: 0.6;
+  }
+}

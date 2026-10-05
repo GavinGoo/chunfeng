@@ -1,0 +1,34 @@
+# 密钥（.env.example 除外）
+.env
+.env.*
+!.env.example
+
+# agent
+.claude/
+.agents/
+AGENTS.md
+CLAUDE.md
+
+# 运行数据与报告
+data/
+reports/
+
+# 构建与依赖
+.next/
+.next-*/
+out/
+node_modules/
+*.tsbuildinfo
+next-env.d.ts
+
+# 测试产物
+test-results/
+playwright-report/
+blob-report/
+coverage/
+
+# 系统
+.DS_Store
+
+# 构建缓存（书名源字体等，06 §3.2）
+.cache/

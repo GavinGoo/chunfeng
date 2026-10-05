@@ -1,0 +1,31 @@
+/*
+ * UI 子集字体「Chunfeng UI」（06 §3.2），由 scripts/build-fonts.ts 生成。
+ * 只含界面静态文案用到的汉字与中文标点；拉丁字母与数字落到 Source Serif 4。
+ * 400 在 layout.tsx 中 preload；600 按需下载。
+ * 书名子集字体「Chunfeng Title」（玄宗体，只含书名用字，D20）：preload，font-display: block，避免书名先闪一下宋体。
+ * Source Serif 4 与 Noto Serif SC 的可变字体由 layout.tsx 从 fontsource 包导入。
+ */
+
+@font-face {
+  font-family: "Chunfeng UI";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/ui-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Chunfeng UI";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/ui-600.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Chunfeng Title";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("/fonts/title.woff2") format("woff2");
+}

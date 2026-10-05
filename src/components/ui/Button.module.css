@@ -1,0 +1,175 @@
+/* 书外按钮（06 §7） */
+
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  font-family: var(--font-serif);
+  font-size: var(--fs-base);
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    color var(--dur-short) var(--ease-soft),
+    opacity var(--dur-short) var(--ease-soft),
+    transform var(--dur-micro) var(--ease-soft);
+}
+
+.label {
+  position: relative;
+  z-index: 1;
+}
+
+.icon {
+  flex: none;
+}
+
+/* ---------- 主按钮：透明底，双线金框 ---------- */
+
+.primary {
+  height: var(--tap-min);
+  padding: 0 var(--sp-6);
+  color: var(--gold-100);
+  letter-spacing: var(--ls-button);
+  /* 字距会在末字后多出一截，用等量右移抵消，保持视觉居中 */
+  text-indent: var(--ls-button);
+  border: 1px solid var(--gold-500);
+  border-radius: var(--radius-paper);
+}
+
+/* 外发光：静态阴影，只动画它的透明度 */
+.glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: 0 0 20px -3px rgba(227, 200, 138, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-long) var(--ease-soft);
+}
+
+/* 内侧细线：间距 3 px */
+.primary::before {
+  z-index: 1;
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(201, 163, 90, 0.55);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+/* 烫金扫光：悬停时自左向右掠过一次（裁剪在按钮之内） */
+.sheen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(245, 231, 193, 0.16) 50%, transparent 70%);
+  transform: translateX(-110%);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primary:not([aria-disabled="true"]):hover .glow {
+    opacity: 0.7;
+  }
+
+  .primary:not([aria-disabled="true"]):hover .sheen::before {
+    transform: translateX(110%);
+    transition: transform var(--dur-long) var(--ease-soft);
+  }
+}
+
+.primary:not([aria-disabled="true"]):active {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+
+/* ---------- 次按钮：线描图标 + 文字 ---------- */
+
+.secondary {
+  padding: 0 var(--sp-3);
+  color: var(--moon-300);
+  font-size: var(--fs-base);
+  letter-spacing: 0.08em;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .secondary:not([aria-disabled="true"]):hover {
+    color: var(--moon-100);
+  }
+}
+
+.secondary:not([aria-disabled="true"]):active {
+  transform: translateY(1px);
+}
+
+/* ---------- 文字链接 ---------- */
+
+.link {
+  padding: 0 var(--sp-2);
+  color: var(--moon-500);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.08em;
+}
+
+.link .label {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--dur-short) var(--ease-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link:not([aria-disabled="true"]):hover {
+    color: var(--moon-300);
+  }
+
+  .link:not([aria-disabled="true"]):hover .label {
+    text-decoration-color: currentColor;
+  }
+}
+
+/* ---------- 状态 ---------- */
+
+.button[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* 强调一次：外发光缓慢亮起再退去 */
+.highlight .glow {
+  animation: highlight 2.4s var(--ease-soft) 1;
+}
+
+@keyframes highlight {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheen {
+    display: none;
+  }
+
+  .highlight .glow {
+    animation: none;
+  }
+}

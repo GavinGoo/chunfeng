@@ -1,0 +1,27 @@
+# 密钥：运行时由 docker-compose.yml 的 env_file 注入，绝不进入镜像
+.env
+.env.*
+!.env.example
+
+# 运行数据、报告与构建产物
+data/
+reports/
+.next/
+.next-*/
+node_modules/
+*.tsbuildinfo
+.cache/
+
+# 测试产物
+test-results/
+playwright-report/
+blob-report/
+coverage/
+
+# 文档与工具
+.git/
+.github/
+.agents/
+docs/
+.claude/
+.DS_Store

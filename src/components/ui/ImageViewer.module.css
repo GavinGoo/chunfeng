@@ -1,0 +1,96 @@
+/* 查看大图（15 §11.4）：遮罩 rgba(5,6,11,.86)；图片 contain，最大 92vw × 86vh（避开安全区） */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.root[data-visible] {
+  pointer-events: auto;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 6, 11, 0.86);
+  opacity: 0;
+  transition: opacity var(--dur-medium) var(--ease-soft);
+}
+
+.panel {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: max(env(safe-area-inset-top), 7vh) max(env(safe-area-inset-right), 4vw)
+    max(env(safe-area-inset-bottom), 7vh) max(env(safe-area-inset-left), 4vw);
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity var(--dur-medium) var(--ease-soft),
+    transform var(--dur-medium) var(--ease-soft);
+}
+
+.root[data-visible] .overlay,
+.root[data-visible] .panel {
+  opacity: 1;
+}
+
+.root[data-visible] .panel {
+  transform: none;
+}
+
+.image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 92vw;
+  max-height: 86vh;
+  object-fit: contain;
+  pointer-events: auto;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8);
+  -webkit-touch-callout: default;
+}
+
+.close {
+  position: absolute;
+  top: max(env(safe-area-inset-top), 8px);
+  right: max(env(safe-area-inset-right), 8px);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--moon-100);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.close:hover {
+  color: var(--gold-300);
+}
+
+.close:focus-visible {
+  outline: var(--focus-night);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .panel {
+    transition: opacity var(--dur-short) linear;
+  }
+
+  .panel {
+    transform: none;
+  }
+}

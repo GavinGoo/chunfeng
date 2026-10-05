@@ -1,0 +1,24 @@
+# 春风 · 直接用 Node 部署时的 systemd 服务（13 §5.3）
+# 把 User 与 WorkingDirectory 改成克隆仓库的用户与目录，然后：
+#   sudo cp deploy/chunfeng.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now chunfeng
+[Unit]
+Description=Chunfeng (春风)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=chunfeng
+WorkingDirectory=/opt/chunfeng
+Environment=NODE_ENV=production
+# 等同于 pnpm start；只监听本机，对外经 nginx（deploy/nginx.conf）。配置读取工作目录下的 .env
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

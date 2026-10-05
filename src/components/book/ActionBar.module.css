@@ -1,0 +1,100 @@
+/* 书外底部操作区（11 §6）：位于 geometry.actionBar，水平居中 */
+
+.bar {
+  position: fixed;
+  z-index: 3;
+  left: var(--bar-x);
+  top: var(--bar-y);
+  width: var(--bar-w);
+  height: var(--bar-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  pointer-events: auto;
+  animation: bar-in 400ms var(--ease-soft) both;
+}
+
+.bar[data-view="owner"] .row,
+.bar[data-view="visitor"] .row {
+  gap: clamp(var(--sp-3), 4vw, var(--sp-6));
+}
+
+.hint {
+  position: relative;
+  display: inline-grid;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.08em;
+  color: var(--moon-300);
+  white-space: nowrap;
+}
+
+.hintIn,
+.hintOut {
+  grid-area: 1 / 1;
+}
+
+.hintIn {
+  animation: hint-in 600ms var(--ease-soft) both;
+}
+
+.hintOut {
+  animation: hint-out 600ms var(--ease-soft) both;
+}
+
+.closeLink {
+  font-size: var(--fs-sm);
+}
+
+@keyframes bar-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hint-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hint-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .row {
+    gap: var(--sp-2);
+  }
+
+  .hint {
+    font-size: var(--fs-xs);
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .hintIn,
+  .hintOut {
+    animation-duration: 200ms;
+  }
+}

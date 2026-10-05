@@ -1,0 +1,130 @@
+/* 春风 · 全局样式：精简重置、夜色底、焦点环、减少动态效果（06） */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  color-scheme: dark;
+  background: var(--night-900);
+  hanging-punctuation: allow-end;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  font-family: var(--font-serif);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  letter-spacing: var(--ls-body);
+  color: var(--moon-100);
+  background: var(--night-900);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
+  /* 中文不用斜体（06 §1 守则 5） */
+  font-style: normal;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+img,
+svg,
+canvas,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+p,
+h1,
+h2,
+h3,
+h4 {
+  overflow-wrap: break-word;
+}
+
+em,
+i,
+cite {
+  font-style: normal;
+}
+
+::selection {
+  background: rgba(227, 200, 138, 0.28);
+  color: var(--gold-100);
+}
+
+/* ---------- 焦点环（06 §7）：只在键盘聚焦时出现 ---------- */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: var(--focus-night);
+  outline-offset: var(--focus-night-offset);
+}
+
+/* 纸面上的元素用墨色焦点环：在纸页容器上加 data-surface="paper" */
+[data-surface="paper"] :focus-visible {
+  outline: var(--focus-paper);
+  outline-offset: var(--focus-paper-offset);
+}
+
+/* 程序移焦的落点（tabIndex=-1，如答案页的提问标题、提示页标题）不可交互、不在 Tab 序列中，不画焦点环。
+ * 否则用回车提交（键盘模态）后，显现结束时移焦会让浏览器判定为 :focus-visible，提问被一个墨色框包住 */
+[tabindex="-1"]:focus-visible {
+  outline: none;
+}
+
+/* ---------- 工具类 ---------- */
+
+.tnum {
+  font-family: var(--font-numeric);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* ---------- 减少动态效果（06 §6） ----------
+ * 不设全局「一刀切」：每个组件在自己的样式里写 prefers-reduced-motion 分支
+ * （关闭位移、扫光、粒子，只保留 ≤ 200 ms 的透明度过渡）。 */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

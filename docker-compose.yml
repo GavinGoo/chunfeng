@@ -1,0 +1,23 @@
+# 春风 · Docker 部署（13 §5.2）
+#   cp .env.example .env    # 填写密钥与 IP_HASH_SALT
+#   docker compose up -d --build
+# 更新：git pull && docker compose up -d --build
+services:
+  app:
+    build: .
+    image: chunfeng
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # 数据固定在数据卷内，不受 .env 中路径的影响
+      DATABASE_PATH: /app/data/chunfeng.db
+      SHARE_CACHE_DIR: /app/data/share-cache
+      IMAGE_DIR: /app/data/images
+    ports:
+      # 只对本机开放，对外经 nginx（deploy/nginx.conf）
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - chunfeng-data:/app/data
+
+volumes:
+  chunfeng-data:

@@ -1,0 +1,545 @@
+/* 答案页内容（11 §1、§2、§7）。只画内容，纸张由舞台绘制；每一页是一个尺寸容器，页内尺寸用 cqw。 */
+
+.root {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  container-type: size;
+  color: var(--ink-900);
+  font-family: var(--font-serif);
+  letter-spacing: var(--ls-body);
+  background: transparent;
+  text-align: left;
+}
+
+/* 空白纸页：墨迹尚未显现，或已淡去 */
+.root[data-ink-state="hidden"] [data-ink] {
+  opacity: 0;
+}
+
+/* 金尘（11 §5.1）：文字之上的一层，零星金粉从提问的字间升起。纸面是亮的，正常混合（screen 看不见） */
+.dust {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.dust > span {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--gold-100), var(--gold-500) 55%, transparent 72%);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.page {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  container: page / size;
+
+  --opt-size: clamp(15px, 4.9cqw, 18px);
+  --desc-size: clamp(15px, 4.6cqw, 16px);
+  --small-size: clamp(12px, 3.6cqw, 14px);
+  --m-top: 10cqw;
+  --m-side: 10cqw;
+  --m-bottom: 12cqw;
+}
+
+/* 手机竖屏：左右页边略收，给选项行多留一点宽度 */
+@container (max-width: 420px) {
+  .page {
+    --m-side: 8.5cqw;
+  }
+}
+
+.root[data-compact] .page {
+  --opt-size: 15px;
+  --desc-size: 14px;
+  --small-size: 12px;
+  --opt-min-h: var(--tap-min);
+  --opt-pad-y: 7px;
+  --opt-pad-x: 10px;
+  --opt-gap: 8px;
+  --m-top: 7cqw;
+  --m-side: 8cqw;
+  --m-bottom: 10cqw;
+}
+
+/* ---------- 版心滚动区（11 §2.3） ---------- */
+
+.scroll {
+  /* 向外扩 6 px 再以内边距收回：焦点环不被裁掉 */
+  position: absolute;
+  inset: calc(var(--m-top) - 6px) calc(var(--m-side) - 6px) calc(var(--m-bottom) - 6px);
+  padding: 6px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(42, 34, 27, 0.3) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: rgba(42, 34, 27, 0.3);
+  border-radius: 2px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll[data-fade="top"] {
+  mask-image: linear-gradient(to bottom, transparent, #000 16px);
+}
+
+.scroll[data-fade="bottom"] {
+  mask-image: linear-gradient(to top, transparent, #000 16px);
+}
+
+.scroll[data-fade="top bottom"] {
+  mask-image: linear-gradient(to bottom, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+}
+
+.scrollInner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.centerScroll .scrollInner {
+  justify-content: center;
+}
+
+/* 横屏左页：提问位于页面中部偏上 */
+.leftBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 14cqh;
+}
+
+/* 带图提问（15 §11.1）：竖屏相片浮在提问右侧，此块收住浮动，分割线不被挤到相片旁 */
+.questionBlock {
+  display: flow-root;
+}
+
+/* ---------- 页眉时间 ---------- */
+
+.header {
+  margin-bottom: 4cqw;
+  font-size: var(--small-size);
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--ink-500);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.sep {
+  white-space: pre;
+}
+
+/* 农历与时辰是可选的：极窄的页（低矮横屏）放不下一行时省去，避免折行后行首悬着一个间隔号 */
+@container page (max-width: 280px) {
+  .lunar {
+    display: none;
+  }
+}
+
+/* ---------- 提问 ---------- */
+
+.question {
+  position: relative;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--ink-900);
+  font-size: clamp(20px, 6.4cqw, 28px);
+  scroll-margin: 16px;
+}
+
+.question[data-size="medium"] {
+  font-size: clamp(18px, 5.6cqw, 24px);
+}
+
+.question[data-size="long"] {
+  font-size: clamp(16px, 4.8cqw, 20px);
+}
+
+.question[data-large] {
+  font-size: clamp(24px, 6cqw, 34px);
+}
+
+.question[data-large][data-size="medium"] {
+  font-size: clamp(20px, 5.2cqw, 28px);
+}
+
+.question[data-large][data-size="long"] {
+  font-size: clamp(17px, 4.4cqw, 22px);
+}
+
+.question[data-quiet] {
+  font-size: clamp(17px, 5cqw, 20px);
+  color: var(--ink-700);
+}
+
+.question[data-quiet][data-size="long"] {
+  font-size: clamp(15px, 4.4cqw, 17px);
+}
+
+/* 低矮横屏：整体降一级 */
+.root[data-compact] .question {
+  font-size: 17px;
+}
+
+.root[data-compact] .question[data-size="long"] {
+  font-size: 15px;
+}
+
+/* 直角引号悬挂：折行后的文字与首字对齐，「 伸入左侧 */
+.questionText {
+  display: block;
+  padding-inline-start: 1em;
+  text-indent: -1em;
+  border-radius: 2px;
+}
+
+.questionText[data-clamp] {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.questionText[role="button"] {
+  cursor: pointer;
+}
+
+.questionText > span {
+  /* 逐字显现只动画 opacity 与 filter，保持内联以保留中文标点避头尾与西文单词的断行规则 */
+  display: inline;
+}
+
+/* ---------- 分割线 ---------- */
+
+.rule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4.5cqw 0;
+  transform-origin: center;
+}
+
+.ruleLine {
+  flex: 1;
+  height: 1px;
+  background: var(--ink-line);
+}
+
+.diamond {
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(42, 34, 27, 0.42);
+  transform: rotate(45deg);
+}
+
+/* ---------- 风纹饰（横屏左页） ---------- */
+
+.ornament {
+  width: 46%;
+  margin: 7cqw 0 0 1em;
+  color: var(--ink-900);
+}
+
+.ornament svg {
+  width: 100%;
+  height: auto;
+  opacity: 0.2;
+}
+
+/* ---------- 选项 ---------- */
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 2.4cqw, 12px);
+  margin: 0;
+  padding: 0;
+}
+
+.answerHeading {
+  margin-bottom: 5cqw;
+  text-align: center;
+  font-size: var(--small-size);
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: var(--ink-500);
+}
+
+/* ---------- 首次引导 ---------- */
+
+.hint {
+  margin-top: 4cqw;
+  text-align: center;
+  font-size: var(--small-size);
+  letter-spacing: 0.08em;
+  color: var(--ink-500);
+  transition: opacity 240ms var(--ease-soft);
+}
+
+.hint[data-leaving] {
+  opacity: 0;
+}
+
+/* ---------- 页脚：AI 标识与页码（落在下方页边内） ---------- */
+
+.folio {
+  position: absolute;
+  left: var(--m-side);
+  right: var(--m-side);
+  bottom: calc(var(--m-bottom) * 0.38);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: var(--fs-xs);
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  color: var(--ink-500);
+  pointer-events: none;
+}
+
+.aiLabel {
+  white-space: nowrap;
+}
+
+.pageNo {
+  white-space: nowrap;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- 提示页与错误页（11 §7） ---------- */
+
+.notice {
+  margin-top: 5cqw;
+}
+
+.centerScroll .notice {
+  margin-top: 0;
+  padding-bottom: 6cqh;
+}
+
+.notice[data-variant="notFound"] {
+  text-align: center;
+}
+
+.noticeTitle {
+  margin-bottom: 3cqw;
+  font-size: clamp(19px, 5.8cqw, 24px);
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  color: var(--ink-900);
+}
+
+.noticeBody {
+  font-size: var(--desc-size);
+  line-height: var(--lh-body);
+  color: var(--ink-700);
+}
+
+.noticeExtra {
+  display: inline;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin-top: 6cqw;
+}
+
+.notice[data-variant="notFound"] .actions {
+  justify-content: center;
+}
+
+.paperButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-min);
+  padding: 0 24px;
+  font-size: var(--fs-base);
+  line-height: 1;
+  letter-spacing: var(--ls-button);
+  text-indent: var(--ls-button);
+  color: var(--ink-900);
+  border: 1px solid var(--ink-edge);
+  border-radius: var(--radius-paper);
+  white-space: nowrap;
+  transition: transform var(--dur-micro) var(--ease-soft);
+}
+
+/* 内侧细线：与书外主按钮同为双线框，只是换成墨色 */
+.paperButton::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid var(--ink-line);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.paperButton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ink-wash);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .paperButton:not([aria-disabled]):hover::after {
+    opacity: 1;
+  }
+
+  .paperLink:not([aria-disabled]):hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.paperButton:not([aria-disabled]):active,
+.paperLink:not([aria-disabled]):active {
+  transform: translateY(1px);
+}
+
+.paperButton[data-highlight] {
+  border-color: var(--ink-900);
+}
+
+.paperButton[data-highlight]::after {
+  opacity: 1;
+}
+
+.paperButton[aria-disabled],
+.paperLink[aria-disabled] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.paperLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding: 0 4px;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.08em;
+  color: var(--ink-500);
+  text-decoration: underline 1px transparent;
+  text-underline-offset: 4px;
+  transition:
+    text-decoration-color var(--dur-short) var(--ease-soft),
+    transform var(--dur-micro) var(--ease-soft);
+}
+
+.countdown {
+  margin-top: 6px;
+  font-size: var(--small-size);
+  color: var(--ink-500);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.resources {
+  margin-top: 5cqw;
+}
+
+.resourcesTitle {
+  margin-bottom: 1.5cqw;
+  font-size: var(--small-size);
+  letter-spacing: 0.2em;
+  color: var(--ink-500);
+}
+
+.resourceList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--ink-line);
+}
+
+.resource {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px dashed var(--ink-line);
+  font-size: clamp(14px, 4.2cqw, 15px);
+  line-height: 1.5;
+}
+
+.resourceName {
+  padding: 6px 0;
+  color: var(--ink-700);
+}
+
+.phones {
+  white-space: nowrap;
+  color: var(--ink-500);
+}
+
+.phone {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  color: var(--ink-900);
+  font-family: var(--font-numeric);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.04em;
+  text-decoration: underline 1px var(--ink-line);
+  text-underline-offset: 4px;
+}
+
+/* 链接类的求助资源：整行文字即链接，与电话号码同样的墨色下划线 */
+.resourceLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  color: var(--ink-900);
+  text-decoration: underline 1px var(--ink-line);
+  text-underline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint,
+  .paperButton,
+  .paperButton::after,
+  .paperLink {
+    transition-duration: 0ms;
+  }
+
+  .paperButton:active,
+  .paperLink:active {
+    transform: none;
+  }
+}

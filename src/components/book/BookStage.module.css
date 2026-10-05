@@ -1,0 +1,135 @@
+/* 书本舞台（07 §2、§3）
+ *
+ * 所有尺寸来自 CSS 变量：客户端由 geometry.ts 计算后写入（px）；服务端渲染与首帧用下面的近似公式兜底，
+ * 使 /a/:id 的 SSR 首屏（含无 JS）也能看到摆好的书。 */
+
+.app {
+  --vw: 100vw;
+  --vh: 100dvh;
+  --top: max(24px, calc(env(safe-area-inset-top) + 16px));
+  --bottom: max(16px, env(safe-area-inset-bottom));
+  --bar-h: 96px;
+  --page-h0: min(calc(var(--vh) - var(--top) - var(--bar-h) - var(--bottom)), 820px);
+  --page-w: min(calc(var(--page-h0) * 0.68), calc(var(--vw) - 32px), 560px);
+  --page-h: calc(var(--page-w) / 0.68);
+  --book-y: calc(
+    var(--top) +
+    max(0px, (var(--vh) - var(--top) - var(--bottom) - var(--page-h) - var(--bar-h)) / 2)
+  );
+  --book-x: calc((var(--vw) - var(--page-w)) / 2);
+  --open-w: var(--page-w);
+  --bar-x: calc((var(--vw) - var(--bar-w)) / 2);
+  --bar-y: calc(var(--book-y) + var(--page-h));
+  --bar-w: min(calc(var(--vw) - 32px), max(var(--open-w), 320px));
+  --persp: calc(var(--vh) * 1.866);
+  --closed-transform: none;
+
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+@media (min-aspect-ratio: 21 / 20) {
+  .app {
+    --page-w: min(calc(var(--page-h0) * 0.68), calc((var(--vw) - 64px) / 2));
+    --book-x: calc(var(--vw) / 2);
+    --open-w: calc(var(--page-w) * 2);
+    --closed-transform: translateX(-50%);
+  }
+}
+
+@media (max-height: 479px) {
+  .app {
+    --top: max(12px, calc(env(safe-area-inset-top) + 8px));
+    --bottom: max(8px, env(safe-area-inset-bottom));
+    --bar-h: 64px;
+  }
+}
+
+/* 读取安全区的探针 */
+.safeProbe {
+  position: fixed;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  perspective: var(--persp);
+  perspective-origin: 50% 50%;
+}
+
+/* 书：盒子为打开态的右页（书脊在左缘）；合上时经 --closed-transform 平移（与放大）到 geometry.closed */
+.book {
+  position: absolute;
+  left: var(--book-x);
+  top: var(--book-y);
+  width: var(--page-w);
+  height: var(--page-h);
+  transform-origin: 0 0;
+}
+
+.book[data-posture="closed"] {
+  transform: var(--closed-transform);
+}
+
+.coverBox {
+  position: absolute;
+  inset: 0;
+  /* 封面的 3D 旋转：透视与舞台一致，灭点在视口中心（换算到本盒子的坐标）。
+     perspective 只作用于直接子元素，所以放在封面的父元素上 */
+  perspective: var(--persp);
+  perspective-origin: calc(var(--vw) / 2 - var(--book-x)) calc(var(--vh) / 2 - var(--book-y));
+}
+
+.content {
+  position: absolute;
+  inset: 0;
+}
+
+.content[data-mode="spread"] {
+  left: -100%;
+}
+
+/* 服务端渲染时两种排版都输出，按视口比例只显示一种（挂载后只保留几何决定的那一种） */
+.onlySingle,
+.onlySpread {
+  position: absolute;
+  inset: 0;
+}
+
+.onlySpread {
+  left: -100%;
+}
+
+@media (min-aspect-ratio: 21 / 20) {
+  .onlySingle {
+    display: none;
+  }
+}
+
+@media not all and (min-aspect-ratio: 21 / 20) {
+  .onlySpread {
+    display: none;
+  }
+}
+
+/* 翻页层：全视口，书壳之上、操作区之下（09 §3） */
+.flipLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* 尚无几何（服务端渲染）时：竖屏不显示左页 */
+@media not all and (min-aspect-ratio: 21 / 20) {
+  .autoSpread {
+    display: none;
+  }
+}

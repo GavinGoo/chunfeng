@@ -1,0 +1,42 @@
+/* 页角 GitHub 链接（06 §7.1）
+ *
+ * 客户端由 geometry.repoLink 写入 --repo-x / --repo-y（left / top 优先于 right / bottom）；
+ * 服务端渲染与首帧没有这两个变量，贴右下角兜底。与操作区同层，分享弹层与查看大图盖住它。 */
+
+.link {
+  position: fixed;
+  z-index: 3;
+  left: var(--repo-x, auto);
+  top: var(--repo-y, auto);
+  right: max(16px, calc(env(safe-area-inset-right) + 12px));
+  bottom: max(16px, calc(env(safe-area-inset-bottom) + 12px));
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  color: var(--moon-500);
+  transition: color var(--dur-short) var(--ease-soft);
+}
+
+.mark {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link:hover {
+    color: var(--moon-300);
+  }
+}
+
+.link:focus-visible {
+  color: var(--moon-300);
+}
+
+@media (max-height: 479px) {
+  .link {
+    right: max(8px, calc(env(safe-area-inset-right) + 8px));
+    bottom: max(8px, calc(env(safe-area-inset-bottom) + 8px));
+  }
+}

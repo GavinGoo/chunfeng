@@ -1,0 +1,281 @@
+/* 题字线（08 §2）：无框，只有一道两端渐隐的烫金细线，正中压一枚小菱形；像古籍上待落墨的一行 */
+
+.plate {
+  --line: rgba(201, 163, 90, 0.62);
+  /* 输入文字与打字机共用的字号、字距（08 §2.1）：textarea、镜像层与占位符必须一致，否则光标与浮现的字错位。
+   * 下限 17 px：移动端的打字机也比副标题大一档；≥ 16 px，iOS 聚焦时不缩放 */
+  --plate-fs: clamp(17px, 4.2cqw, 20px);
+  --plate-ls: 0.08em;
+  --plate-pad-top: 14px;
+  position: relative;
+  width: 100%;
+}
+
+/* 细线：压印的暗线在上、金线在下 */
+.plate::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--line) 18%, var(--line) 82%, transparent);
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* 正中的小菱形 */
+.plate::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -2.5px;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  background: var(--cover-800);
+  border: 1px solid var(--line);
+  transform: rotate(45deg);
+  z-index: 1;
+}
+
+/* 引导：细线亮起一次（只动画透明度） */
+.flash {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--gold-300) 15%,
+    var(--gold-100) 50%,
+    var(--gold-300) 85%,
+    transparent
+  );
+  box-shadow: 0 0 12px 1px rgba(227, 200, 138, 0.45);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.plate[data-flash] .flash {
+  animation: flash 600ms var(--ease-soft) 1;
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.field {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.input,
+.mirror {
+  grid-area: 1 / 1;
+  display: block;
+  width: 100%;
+  min-height: calc(1.6em + 28px);
+  max-height: calc(6.4em + 28px);
+  padding: 14px 18px;
+  overflow-y: auto;
+  border: 0;
+  font-size: var(--plate-fs);
+  line-height: 1.6;
+  letter-spacing: var(--plate-ls);
+  word-spacing: normal;
+  text-indent: 0;
+  text-rendering: optimizeLegibility;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  scrollbar-width: thin;
+}
+
+/* 真正的输入框在上层：文字透明，只留光标、选区与交互 */
+.input {
+  position: relative;
+  field-sizing: content;
+  resize: none;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--gold-300);
+  scrollbar-color: rgba(201, 163, 90, 0.4) transparent;
+}
+
+.input::selection {
+  color: transparent;
+}
+
+/* 镜像：与输入框逐字同排，负责显示文字；滚动条同宽但不可见，保证折行一致 */
+.mirror {
+  color: var(--gold-300);
+  scrollbar-color: transparent transparent;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 输入浮现：金色墨点先晕成一团微光，随即收拢成字，外圈的光向四周化开、淡去 */
+.glyph {
+  animation: ink-in 1100ms var(--ease-ink) both;
+}
+
+@keyframes ink-in {
+  0% {
+    color: rgba(227, 200, 138, 0);
+    text-shadow:
+      0 0 0.5em rgba(227, 200, 138, 0.85),
+      0 0 0.12em rgba(245, 231, 193, 0.5);
+  }
+  35% {
+    color: rgba(227, 200, 138, 0.7);
+    text-shadow:
+      0 0 0.22em rgba(245, 231, 193, 0.5),
+      0 0 0.8em rgba(227, 200, 138, 0.3);
+  }
+  100% {
+    color: var(--gold-300);
+    text-shadow:
+      0 0 0 rgba(245, 231, 193, 0),
+      0 0 1.6em rgba(227, 200, 138, 0);
+  }
+}
+
+/* 输入法组合中的字：虚线下划线标出，定字后再浮现 */
+.glyph[data-composing] {
+  animation: none;
+  text-decoration: underline dotted rgba(227, 200, 138, 0.6);
+  text-underline-offset: 0.3em;
+}
+
+.input:focus-visible {
+  outline: none;
+}
+
+/* 焦点（06 §7 的例外）：不画外框，细线加粗为 2 px 实金并泛出微光；加上闪烁的光标，足以辨认 */
+.plate:has(.input:focus-visible)::after,
+.plate[data-lit]::after {
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--gold-300) 12%, var(--gold-300) 88%, transparent);
+  box-shadow: 0 0 10px rgba(227, 200, 138, 0.35);
+}
+
+.plate:has(.input:focus-visible)::before,
+.plate[data-lit]::before {
+  border-color: var(--gold-300);
+}
+
+.input[readonly] {
+  cursor: default;
+}
+
+.plate[data-counter] .input,
+.plate[data-counter] .mirror {
+  padding-bottom: 26px;
+}
+
+.placeholders {
+  grid-area: 1 / 1;
+  position: relative;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  padding: 14px 18px;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-soft);
+}
+
+.placeholders[data-hidden] {
+  opacity: 0;
+}
+
+.placeholder {
+  /* 邀请写下问题，是封面行动的焦点：比副标题亮、比用户写下的字（gold-300 不透明）暗一档 */
+  color: var(--gold-300);
+  font-size: var(--plate-fs);
+  line-height: 1.6;
+  letter-spacing: var(--plate-ls);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0.78;
+}
+
+/* 打字机：每个字到点时淡入；退格时更快淡出 */
+.ghost {
+  opacity: 0;
+  transition: opacity var(--dur-micro) linear;
+}
+
+.ghost[data-on] {
+  opacity: 1;
+  transition-duration: var(--dur-short);
+}
+
+.counter {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  font-size: var(--fs-xs);
+  line-height: 1;
+  color: var(--gold-500);
+  pointer-events: none;
+}
+
+/* 图片提问（15 §10.1）：始终左右各留 40 px，附图槽位出现、消失都不重排，居中也不偏移 */
+.plate[data-vision] .input,
+.plate[data-vision] .mirror,
+.plate[data-vision] .placeholders {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+@container (max-width: 299px) {
+  .plate {
+    --plate-pad-top: 8px;
+    --plate-fs: var(--fs-base);
+  }
+
+  .input,
+  .mirror,
+  .placeholders {
+    padding: 8px 10px;
+  }
+
+  .plate[data-vision] .input,
+  .plate[data-vision] .mirror,
+  .plate[data-vision] .placeholders {
+    padding-left: 34px;
+    padding-right: 34px;
+  }
+
+  .input,
+  .mirror {
+    min-height: calc(1.6em + 16px);
+    max-height: calc(4.8em + 16px);
+  }
+}
+
+/* 减少动态效果：只保留 200 ms 的淡入 */
+@media (prefers-reduced-motion: reduce) {
+  .glyph {
+    animation: ink-fade 200ms linear both;
+  }
+}
+
+@keyframes ink-fade {
+  from {
+    color: rgba(227, 200, 138, 0);
+  }
+}

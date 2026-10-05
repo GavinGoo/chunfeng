@@ -1,0 +1,331 @@
+/* 背景氛围（10 §2）「北辰居中，众星共之」。只对 transform 与 opacity 做动画。
+ * 随强度变化的不透明度（星旋、星盘、光晕呼吸、书缘溢光的活跃层）这里只写平静态的值，
+ * 过渡由组件用 WAAPI 交给合成器播放（16 §3.5），不经过继承的 CSS 变量 */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  /* 书心与书的宽高，由组件按 bookRect 写入。水合前沿用书本舞台的 CSS 兜底公式（BookStage.module.css 的
+   * --book-y / --page-w / --page-h，合上的书水平居中），与测量值一致，星盘等不会在加载后跳位；
+   * 不在舞台内（如 error.tsx）时为视口中心、零尺寸 */
+  --cx: 50vw;
+  --cy: calc(var(--book-y, 50vh) + var(--page-h, 0px) / 2);
+  --bw: var(--page-w, 0px);
+  --bh: var(--page-h, 0px);
+}
+
+.root > * {
+  position: absolute;
+}
+
+/* L0 深空基底：近黑，只在一角留一团极淡的深蓝；四周重暗角，把光收向中央 */
+.base {
+  inset: 0;
+  background:
+    radial-gradient(ellipse 110% 85% at 50% 48%, transparent 30%, rgba(1, 1, 4, 0.92) 100%),
+    radial-gradient(ellipse 70% 60% at 10% 90%, rgba(10, 18, 56, 0.28), transparent 70%),
+    linear-gradient(to bottom, var(--night-900), var(--night-950));
+}
+
+/* L2 星旋：以书为中心的双臂螺旋星云（nebula.webp，黑底），整组 screen 叠加；
+ * 方形图层边长取视口对角线的 1.5 倍，旋转时不露边。每 480 s 转一圈；活跃态不透明度 ×1.3、转速 ×1.5。
+ * 遮罩把紫色收拢在书后与星盘一带，屏幕边缘沉入黑色 */
+.nebula {
+  inset: 0;
+  mix-blend-mode: screen;
+  opacity: 0.52;
+  -webkit-mask-image: radial-gradient(
+    circle at var(--cx) var(--cy),
+    #000 22vmin,
+    rgba(0, 0, 0, 0.55) 52vmin,
+    transparent 85vmin
+  );
+  mask-image: radial-gradient(
+    circle at var(--cx) var(--cy),
+    #000 22vmin,
+    rgba(0, 0, 0, 0.55) 52vmin,
+    transparent 85vmin
+  );
+}
+
+.vortex {
+  position: absolute;
+  left: var(--cx);
+  top: var(--cy);
+  width: calc(max(100vw, 100vh) * 1.6);
+  height: calc(max(100vw, 100vh) * 1.6);
+  background: url("/textures/nebula.webp") center / 100% 100% no-repeat;
+  will-change: transform;
+  transform: translate(-50%, -50%);
+  animation: drift-vortex 480s linear infinite;
+}
+
+/* L2′ 星空：漂移容器，缓慢平移，与星旋形成视差。里面是静止的远景星点与两层会呼吸的亮星（10 §2.1）。
+ * 容器整组 screen 叠加；它是独立的层叠上下文，子层先在组内 screen 合成 */
+.stars {
+  inset: -64px;
+  mix-blend-mode: screen;
+  will-change: transform;
+  animation: drift-stars 210s linear infinite alternate;
+}
+
+.stars > * {
+  position: absolute;
+  inset: 0;
+}
+
+.starsFar {
+  background: url("/textures/stars.png") 0 0 / 512px 512px repeat;
+  opacity: 0.8;
+}
+
+/* 亮星呼吸：只对整层做 opacity 动画（不重绘）。A、B 两层边长与周期都不同（8.4 s : 12.6 s），以负延迟错开相位，
+ * 看不出整片一齐变暗 */
+.glint {
+  mix-blend-mode: screen;
+  animation: glint 8.4s ease-in-out -2.1s infinite;
+}
+
+.glintA {
+  background: url("/textures/glint-a.png") 0 0 / 512px 512px repeat;
+}
+
+.glintB {
+  background: url("/textures/glint-b.png") 0 0 / 384px 384px repeat;
+  animation-duration: 12.6s;
+  animation-delay: -7.3s;
+}
+
+/* 核心数 ≤ 4：B 层不做动画（10 §2.1） */
+.root[data-few-cores] .glintB {
+  animation: none;
+  opacity: 0.8;
+}
+
+/* L1 书后光晕：一团暖金色柔光，让午夜蓝封面从深空的星空中浮出来；活跃态叠加呼吸 */
+.aura {
+  left: var(--cx);
+  top: var(--cy);
+  width: max(120vmin, 760px);
+  height: max(120vmin, 760px);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    closest-side,
+    rgba(227, 200, 138, 0.14),
+    rgba(227, 200, 138, 0.05) 50%,
+    transparent
+  );
+}
+
+/* L1′ 书缘溢光：与书同大的透明盒，只投出极淡的外发光——上缘一线暗青，下缘一团暗紫——像魔法书的光漏到星盘上。
+ * 活跃态的暗紫加深（.24 → .36）拆成单独一层，只改它的不透明度，阴影本身不重绘（16 §3.5）：
+ * 两层叠加在阴影最浓处为 1 − (1 − .24)(1 − .158·L) = .24 + .12·L */
+.rim,
+.rimActive {
+  left: calc(var(--cx) - var(--bw) / 2);
+  top: calc(var(--cy) - var(--bh) / 2);
+  width: var(--bw);
+  height: var(--bh);
+  border-radius: var(--radius-book);
+}
+
+.rim {
+  box-shadow:
+    0 0 56px 4px rgba(96, 170, 184, 0.14),
+    0 32px 120px 24px rgba(104, 64, 176, 0.24);
+}
+
+.rimActive {
+  box-shadow: 0 32px 120px 24px rgba(104, 64, 176, 0.158);
+  opacity: 0;
+}
+
+.auraBreath {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+/* 呼吸只在活跃态运行（16 §3.4）：回到平静态时冻结在当前值，随整层淡出，不跳变 */
+.auraBreath::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(closest-side, rgba(227, 200, 138, 0.06), transparent 70%);
+  opacity: 0;
+  animation: breathe 3.2s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.root[data-intensity="active"] .auraBreath::before {
+  animation-play-state: running;
+}
+
+/* L3 星盘：暗金细线星图（SVG 内自带轻微虚化），以书为中心逆时针缓转（15 min 一圈）；活跃态略亮、转速 ×1.5。
+ * 旋转挂在外层 div 上：对 <svg> 根元素做 transform 动画，Chromium 每个主线程帧都会重新布局、重绘并栅格化整张星盘
+ * （16 §3.1，复盘 2026-10-03-star-chart-repaint）。外层 div 转动时，里面的 SVG（连同滤镜）只栅格化一次 */
+.chart {
+  left: var(--cx);
+  top: var(--cy);
+  width: clamp(700px, 122vmin, 1400px);
+  height: clamp(700px, 122vmin, 1400px);
+  color: var(--gold-500);
+  font-family: var(--font-serif);
+  opacity: 0.3;
+  will-change: transform;
+  transform: translate(-50%, -50%);
+  animation: drift-chart 900s linear infinite;
+}
+
+.chartSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+
+/* L3′ 北斗：以天枢为原点的零尺寸锚点，绕它旋转使指极线对准书心（10 §2） */
+.dipper {
+  --u: clamp(0.5px, 0.05vmax, 0.8px);
+  --ax: 24vw;
+  --ay: 17vh;
+  left: var(--ax);
+  top: var(--ay);
+  width: 0;
+  height: 0;
+  color: var(--gold-500);
+  opacity: 0.55;
+  transform: rotate(calc(atan2(var(--cy) - var(--ay), var(--cx) - var(--ax)) - var(--dipper-offset)));
+}
+
+@media (orientation: portrait) {
+  .dipper {
+    --ax: 40vw;
+    --ay: 84vh;
+  }
+}
+
+.dipperSvg {
+  position: absolute;
+  left: calc(-40 * var(--u));
+  top: calc(-420 * var(--u));
+  width: calc(380 * var(--u));
+  height: calc(560 * var(--u));
+  max-width: none;
+  overflow: visible;
+}
+
+/* 逐星周期 6.8–9.2 s 由组件内联写入 */
+.dipperStar {
+  animation: twinkle 8s ease-in-out infinite;
+}
+
+@keyframes drift-vortex {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes drift-chart {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(-360deg);
+  }
+}
+
+@keyframes drift-stars {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(48px, -32px, 0);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+@keyframes glint {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.62;
+  }
+}
+
+/* L4′ 焦外暗角（10 §2.1）：盖在星旋、星空、星盘、北斗之上，以书心为圆心把画面四周压暗，视线收回书上。
+ * L0 的暗角在最底层，压不住叠在它上面的星图；微粒是近景，留在暗角之上。静态 */
+.vignette {
+  inset: 0;
+  background: radial-gradient(
+    ellipse 80vmax 64vmax at var(--cx) var(--cy),
+    transparent 32%,
+    rgba(3, 3, 8, 0.36) 62%,
+    rgba(3, 3, 8, 0.78) 100%
+  );
+}
+
+/* L4 风中微粒 */
+.particles {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* L5 颗粒：消除渐变色带 */
+.grain {
+  inset: 0;
+  background: url("/textures/grain.png") repeat;
+  background-size: 128px 128px;
+  opacity: 0.04;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vortex,
+  .stars,
+  .chart,
+  .dipperStar,
+  .glint,
+  .auraBreath::before {
+    animation: none;
+  }
+
+  .glint {
+    opacity: 0.8;
+  }
+}
+
+/* 品质档位 lite（16 §3.12）：两层亮星不呼吸，停在 0.8（同减少动态效果） */
+.root[data-tier="lite"] .glint {
+  animation: none;
+  opacity: 0.8;
+}

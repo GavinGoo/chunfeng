@@ -1,0 +1,91 @@
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(
+    120% 90% at 30% 10%,
+    var(--night-800) 0%,
+    var(--night-900) 55%,
+    var(--night-950) 100%
+  );
+}
+
+.shell {
+  position: absolute;
+  border-radius: 3px;
+  box-shadow: var(--shadow-book);
+}
+
+.paper {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background-color: var(--paper-100);
+  background-image: url("/textures/paper.webp");
+  background-size: 100% 100%;
+}
+
+.paper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.right::after {
+  background: var(--shadow-spine-right);
+}
+
+.left::after {
+  background: var(--shadow-spine-left);
+}
+
+.content {
+  position: absolute;
+  inset: 0;
+}
+
+.panel {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 260px;
+  padding: 8px 10px;
+  font:
+    12px / 1.4 ui-monospace,
+    monospace;
+  color: var(--moon-300);
+  background: rgba(3, 3, 8, 0.8);
+  border: 1px solid rgba(191, 182, 164, 0.2);
+  border-radius: 4px;
+}
+
+.panel select,
+.panel button {
+  font: inherit;
+  color: var(--moon-100);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(191, 182, 164, 0.3);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.meta {
+  color: var(--moon-500);
+}
+
+.log {
+  margin: 0;
+  padding-left: 16px;
+  color: var(--moon-500);
+}

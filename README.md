@@ -131,7 +131,7 @@ cp .env.example .env && chmod 600 .env    # 按下面的最简配置填写
 mkdir -p data                             # 数据库、分享图缓存与上传图片（已 .gitignore / .dockerignore 排除）
 ```
 
-容器以镜像内 uid 1000 的 `node` 用户运行：`data/` 要能被它写、`.env` 要能被它读，普通用户克隆的仓库（Ubuntu 首个用户即 uid 1000）天然满足。若 `id -u` 不是 1000，给 `docker run` 加 `--user "$(id -u):$(id -g)"`。
+
 
 **生产环境最简 `.env`**：下面 7 项缺任何一项，服务都会拒绝启动并报出缺少的变量名。其余配置项都有默认值，见[配置](#配置)。
 
@@ -155,6 +155,16 @@ IP_HASH_SALT=<随机串>
 #### 方式一：Docker（推荐）
 
 服务器只需安装 Docker，不需要 Node、pnpm 与编译工具。镜像用 CI 构建好的 `ghcr.io/gavingoo/chunfeng:latest`。
+
+容器以镜像内 uid 1000 的 `node` 用户运行，它要能读 `.env`、能写 `data/`。**绑定挂载不改变宿主文件的属主与权限**：上面 `chmod 600` 之后 `.env` 的属主必须是 uid 1000，否则容器里读不到（详见下面的症状）。在仓库根目录核对：
+
+```bash
+ls -lnd .env data                         # 第 3、4 列应为 1000 1000
+sudo chown 1000:1000 .env                 # 不是就改属主，权限保持 600
+sudo chown -R 1000:1000 data
+```
+
+>  属主不符时的症状：日志先出现 `Failed to load env from .env` 与 `EACCES: permission denied, open '/app/.env'`，紧接着 `[chunfeng] 配置无效或缺失，请检查环境变量：…` 并以退出码 1 结束
 
 ```bash
 docker pull ghcr.io/gavingoo/chunfeng:latest
@@ -195,10 +205,8 @@ journalctl -u chunfeng -f                                                       
 ```bash
 sudo cp deploy/nginx.conf <nginx_conf>/vhost/<DOMAIN>.conf   # 主配置的 http { } 里要有 include vhost/*.conf;
 vim <nginx_conf>/vhost/<DOMAIN>.conf		# 修改模板配置
-sudo nginx -t && sudo systemctl reload nginx
+sudo nginx -t && sudo nginx -s reload
 ```
-
-多个域名反代到同一后端时，把全部域名写进两处 `server_name`，并把跳转里的 `$server_name` 改为 `$host`（详见文件头部注释）。
 
 部署完成后，访问 `https://<DOMAIN>/api/health`，返回正常即表示服务已就绪。更多细节（防火墙、内网 JEV 网关的连通性检查、手动备份）见[部署与运维](.agents/modules/13-deployment.md)。
 

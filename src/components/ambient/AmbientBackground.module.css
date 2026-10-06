@@ -65,7 +65,8 @@
 }
 
 /* L2′ 星空：漂移容器，缓慢平移，与星旋形成视差。里面是静止的远景星点与两层会呼吸的亮星（10 §2.1）。
- * 容器整组 screen 叠加；它是独立的层叠上下文，子层先在组内 screen 合成 */
+ * 容器整组 screen 叠加；它是独立的层叠上下文，子层先在组内 screen 合成。
+ * 三层星点都是 <canvas>（StarTexture 画入平铺纹理），不是 CSS 背景：不占瓦片显存，整页失效时不重新栅格（16 §3.13） */
 .stars {
   inset: -64px;
   mix-blend-mode: screen;
@@ -76,10 +77,14 @@
 .stars > * {
   position: absolute;
   inset: 0;
+  /* canvas 是替换元素，只写 inset 不会拉伸 */
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
+/* 远景星点：stars.png，512 px 平铺 */
 .starsFar {
-  background: url("/textures/stars.png") 0 0 / 512px 512px repeat;
   opacity: 0.8;
 }
 
@@ -90,12 +95,8 @@
   animation: glint 8.4s ease-in-out -2.1s infinite;
 }
 
-.glintA {
-  background: url("/textures/glint-a.png") 0 0 / 512px 512px repeat;
-}
-
+/* A 层 glint-a.png 512 px 平铺；B 层 glint-b.png 384 px 平铺 */
 .glintB {
-  background: url("/textures/glint-b.png") 0 0 / 384px 384px repeat;
   animation-duration: 12.6s;
   animation-delay: -7.3s;
 }

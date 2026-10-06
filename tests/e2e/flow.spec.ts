@@ -164,12 +164,15 @@ test('选项说明：选项与说明共用一圈外框，下边框随说明下�
   const measure = () =>
     option.evaluate((btn) => {
       const item = btn.closest('li') as HTMLElement;
+      const frame = item.querySelector('[data-frame-bottom]') as HTMLElement;
       const panel = document.getElementById(btn.getAttribute('aria-controls') ?? '') as HTMLElement;
-      const body = panel.querySelector('div > div') as HTMLElement;
+      const body = panel.querySelector('[data-panel-body]') as HTMLElement;
       const cs = (el: Element, pseudo?: string) => getComputedStyle(el, pseudo);
       return {
         itemBorder: cs(item).borderBottomWidth,
         itemBottom: item.getBoundingClientRect().bottom,
+        frameBorder: cs(frame).borderBottomWidth,
+        frameBottom: frame.getBoundingClientRect().bottom,
         btnBorder: cs(btn).borderBottomWidth,
         btnBottom: btn.getBoundingClientRect().bottom,
         panelBottom: panel.getBoundingClientRect().bottom,
@@ -181,11 +184,13 @@ test('选项说明：选项与说明共用一圈外框，下边框随说明下�
       };
     });
 
-  // 收起：外框紧贴选项，按钮与说明都不画自己的边框
+  // 收起：外框（下半截）紧贴选项，条目、按钮与说明都不画自己的边框
   const closed = await measure();
-  expect(closed.itemBorder).toBe('1px');
+  expect(closed.itemBorder).toBe('0px');
+  expect(closed.frameBorder).toBe('1px');
   expect(closed.btnBorder).toBe('0px');
   expect(closed.bodyBorder).toBe('0px');
+  expect(Math.abs(closed.frameBottom - closed.itemBottom)).toBeLessThan(0.5);
   expect(Math.abs(closed.itemBottom - closed.btnBottom - 1)).toBeLessThan(1.5);
   expect(closed.dividerOpacity).toBe(0);
 
@@ -193,9 +198,54 @@ test('选项说明：选项与说明共用一圈外框，下边框随说明下�
   await option.click();
   await expect(option).toHaveAttribute('aria-expanded', 'true');
   await expect.poll(async () => (await measure()).dividerOpacity).toBeCloseTo(0.6);
-  await expect.poll(async () => (await measure()).itemBottom - closed.itemBottom).toBeGreaterThan(20);
+  // 等滑动结束：下半截外框回到条目底边
+  await expect
+    .poll(async () => {
+      const m = await measure();
+      return Math.abs(m.frameBottom - m.itemBottom);
+    })
+    .toBeLessThan(0.5);
   const open = await measure();
+  expect(open.frameBottom - closed.frameBottom).toBeGreaterThan(20);
   expect(Math.abs(open.itemBottom - open.panelBottom - 1)).toBeLessThan(1.5);
   expect(open.divider).toBe('dashed');
   expect(open.bodyBg).not.toBe(open.btnBg);
+
+  // 收起后回到原样
+  await option.click();
+  await expect(option).toHaveAttribute('aria-expanded', 'false');
+  await expect.poll(async () => (await measure()).frameBottom).toBeCloseTo(closed.frameBottom, 0);
+  await expect(page.getByRole('region', { name: /说明/ })).toHaveCount(0);
+});
+
+test('选项说明：展开与收起只动画 transform 与 opacity，布局一次到位（11 §4.3，AGENTS.md §6.4）', async ({
+  page,
+}) => {
+  await gotoHome(page);
+  await ask(page, '要不要换个城市生活？');
+  const option = page.getByRole('button', { name: /^B，/ });
+  for (const expanded of ['true', 'false']) {
+    // 点按后的同一任务里采样：正在运行的动画与条目高度
+    const sample = await option.evaluate(async (btn) => {
+      const item = btn.closest('li') as HTMLElement;
+      (btn as HTMLElement).click();
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      const props = new Set<string>();
+      for (const a of document.getAnimations()) {
+        if (a.playState !== 'running' || !(a.effect instanceof KeyframeEffect)) continue;
+        if (!item.closest('[data-scroll]')?.contains(a.effect.target as Node)) continue;
+        for (const k of a.effect.getKeyframes())
+          for (const key of Object.keys(k))
+            if (!['offset', 'easing', 'composite', 'computedOffset'].includes(key)) props.add(key);
+      }
+      const h0 = item.getBoundingClientRect().height;
+      await new Promise((r) => setTimeout(r, 120));
+      const h1 = item.getBoundingClientRect().height;
+      return { props: [...props], h0, h1 };
+    });
+    await expect(option).toHaveAttribute('aria-expanded', expanded);
+    expect(sample.props.length).toBeGreaterThan(0);
+    for (const prop of sample.props) expect(['transform', 'opacity']).toContain(prop);
+    expect(sample.h1).toBe(sample.h0);
+  }
 });

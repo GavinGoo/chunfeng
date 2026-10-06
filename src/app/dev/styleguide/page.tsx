@@ -133,7 +133,7 @@ export default function StyleguidePage() {
         <div className={styles.textures}>
           <figure>
             <span className={`${styles.texture} ${styles.leather}`} />
-            <figcaption>leather.webp · multiply · --cover-800</figcaption>
+            <figcaption>leather-shade.webp · --cover-800</figcaption>
           </figure>
           <figure>
             <span className={`${styles.texture} ${styles.paperTexture}`} />

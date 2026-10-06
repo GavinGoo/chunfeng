@@ -9,7 +9,8 @@
 // 接口：<AmbientBackground intensity="calm" | "active" bookRect={…} settled />
 // - intensity：平静态 / 活跃态（opening、flipping、settling 时为 active），两者之间 800 ms 平滑插值；
 // - bookRect：书所在矩形（视口 CSS px）。光晕、星旋、星盘以它的中心为圆心，北斗指向它；其中的微粒不透明度 ×0.3。
-// 减少动态效果：不创建画布，L1、L2 保持静态，强度不再变化。
+// 减少动态效果：不创建微粒画布，L1、L2 保持静态，强度不再变化。
+// 星空远景与两层亮星画在 <canvas> 里（StarTexture），不占瓦片显存，字体加载引起的整页失效不重画它们（16 §3.13）。
 // 资源占用（16）：星盘的旋转挂在外层 div 上（§3.1）；强度过渡的不透明度交给合成器（§3.5）；
 // 无限循环的旋转、漂移与闪烁由背景时钟约 30 Hz 推进（§3.8）。
 // 品质档位 lite（§3.12）：不画微粒，两层亮星停在 0.8，时钟降到 20 Hz；运行时降档时微粒与亮星 600 ms 淡到 lite 的状态。
@@ -40,6 +41,7 @@ import {
 import { ParticleField, type ParticleSeek } from './ParticleField';
 import { isFewCores, type Rect } from './particles';
 import { StarChart } from './StarChart';
+import { StarTexture } from './StarTexture';
 
 export interface AmbientBackgroundProps {
   intensity?: AmbientIntensity;
@@ -262,7 +264,7 @@ export function AmbientBackground({ intensity = 'calm', bookRect, settled = true
     const root = rootRef.current;
     if (!liteFading || !root) return;
     const fades: Animation[] = [];
-    const canvas = root.querySelector('canvas');
+    const canvas = root.querySelector(`.${styles.particles}`);
     if (canvas)
       fades.push(
         canvas.animate([{ opacity: 1 }, { opacity: 0 }], { duration: LITE_FADE_MS, fill: 'forwards' }),
@@ -353,9 +355,9 @@ export function AmbientBackground({ intensity = 'calm', bookRect, settled = true
         <div className={styles.vortex} />
       </div>
       <div className={styles.stars}>
-        <div className={styles.starsFar} />
-        <div className={`${styles.glint} ${styles.glintA}`} />
-        <div className={`${styles.glint} ${styles.glintB}`} />
+        <StarTexture src="/textures/stars.png" tile={512} className={styles.starsFar} />
+        <StarTexture src="/textures/glint-a.png" tile={512} className={styles.glint} />
+        <StarTexture src="/textures/glint-b.png" tile={384} className={`${styles.glint} ${styles.glintB}`} />
       </div>
       <div className={styles.aura}>
         <div ref={auraBreathRef} className={styles.auraBreath} />

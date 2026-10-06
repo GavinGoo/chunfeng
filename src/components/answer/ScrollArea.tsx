@@ -29,12 +29,9 @@ export function ScrollArea({ children, className }: { children: ReactNode; class
     const ro = new ResizeObserver(schedule);
     ro.observe(el);
     if (el.firstElementChild) ro.observe(el.firstElementChild);
-    // 展开说明框（grid-template-rows 过渡）期间内容高度持续变化
-    el.addEventListener('transitionend', schedule);
     return () => {
       cancelAnimationFrame(raf);
       el.removeEventListener('scroll', schedule);
-      el.removeEventListener('transitionend', schedule);
       ro.disconnect();
     };
   }, []);

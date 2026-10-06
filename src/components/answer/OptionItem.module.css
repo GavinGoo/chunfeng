@@ -1,14 +1,49 @@
 /* 选项行与 U 型说明框（11 §4.2） */
 
-/* 外框画在整个条目上：展开时说明区把下边框整体推下去，选项与说明是同一张卡片 */
+/* 选项与说明是同一张卡片，共用一圈外框（D38）。外框不画在条目的 border 上，而是拆成两块叠在上面：
+ * 上沿（上边框与两个上圆角）静止；下半截（两侧、下边框与两个下圆角）放在从上圆角以下开始的裁切框里，
+ * 展开 / 收起时随说明正文一起只做 translateY（11 §4.3）。条目用 1 px 内边距占住原先边框的位置 */
 .item {
   --edge: var(--ink-edge);
   --wash: var(--ink-wash);
   --wash-deep: rgba(42, 34, 27, 0.025);
+  --r: var(--radius-option);
+  position: relative;
   list-style: none;
-  border: 1px solid var(--edge);
-  border-radius: var(--radius-option);
+  padding: 1px;
+  border-radius: var(--r);
   overflow: clip;
+}
+
+.frameTop,
+.frameClip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.frameTop {
+  top: 0;
+  height: var(--r);
+  border: 1px solid var(--edge);
+  border-bottom: 0;
+  border-radius: var(--r) var(--r) 0 0;
+}
+
+.frameClip {
+  top: var(--r);
+  bottom: 0;
+  overflow: hidden;
+}
+
+.frameBottom {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--edge);
+  border-top: 0;
+  border-radius: 0 0 var(--r) var(--r);
 }
 
 /* 外框会裁掉按钮自己的焦点环，改画在整张卡片外 */
@@ -136,19 +171,17 @@
   transform: rotate(180deg);
 }
 
-/* U 型说明框 */
+/* 说明：收起时不占布局；收起动画进行中（data-collapsing）仍留在布局里，高度由条目的负 margin 抵消 */
 .panel {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--dur-medium) var(--ease-soft);
+  display: none;
 }
 
-.option[aria-expanded="true"] + .panel {
-  grid-template-rows: 1fr;
+.option[aria-expanded="true"] + .panel,
+.item[data-collapsing] .panel {
+  display: block;
 }
 
 .panelClip {
-  min-height: 0;
   overflow: hidden;
 }
 
@@ -236,7 +269,6 @@
 @media (prefers-reduced-motion: reduce) {
   .option,
   .chevron,
-  .panel,
   .panelBody::before {
     transition-duration: 0ms;
   }

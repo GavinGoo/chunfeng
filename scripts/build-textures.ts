@@ -1,6 +1,7 @@
 // 程序生成材质纹理（06 §5）
 //
-// - public/textures/leather.webp  512×512 可平铺：细纹小羊皮（灰度，以 multiply 叠加在 --cover-800 上）
+// - public/textures/leather-shade.webp  512×512 可平铺：细纹小羊皮的阴影层（纯黑 + 透明度 1 − 灰度），正常叠在 --cover-800 上，
+//   等价于把灰度皮纹 multiply 上去，但不依赖 background-blend-mode（iOS 16.2 不生效，封面发白）
 // - public/textures/paper.webp    1024×1536：温润纸页（带颜色，DOM 与 WebGL 共用同一张）
 // - public/textures/grain.png     128×128 可平铺：全屏极淡颗粒
 // - public/textures/nebula.webp   1024×1024：以书为中心的双臂螺旋星云
@@ -80,6 +81,13 @@ function fbm(u: number, v: number, basePeriod: number, octaves: number, seed: nu
 function toGray8(values: Float32Array): Buffer {
   const out = Buffer.alloc(values.length);
   for (let i = 0; i < values.length; i++) out[i] = Math.round(clamp01(values[i] ?? 0) * 255);
+  return out;
+}
+
+/** 灰度 g → 纯黑、透明度 1 − g 的 RGBA。底色 c 上正常叠加得 c·g，与 multiply 一致 */
+function toShadeRgba8(values: Float32Array): Buffer {
+  const out = Buffer.alloc(values.length * 4);
+  for (let i = 0; i < values.length; i++) out[i * 4 + 3] = 255 - Math.round(clamp01(values[i] ?? 0) * 255);
   return out;
 }
 
@@ -385,9 +393,9 @@ async function main(): Promise<void> {
   await mkdir(TEX_DIR, { recursive: true });
   await mkdir(SHARE_DIR, { recursive: true });
 
-  const leatherFile = path.join(TEX_DIR, 'leather.webp');
-  await sharp(toGray8(leather(512)), { raw: { width: 512, height: 512, channels: 1 } })
-    .webp({ quality: 62, effort: 6 })
+  const leatherFile = path.join(TEX_DIR, 'leather-shade.webp');
+  await sharp(toShadeRgba8(leather(512)), { raw: { width: 512, height: 512, channels: 4 } })
+    .webp({ quality: 62, alphaQuality: 20, effort: 6 })
     .toFile(leatherFile);
 
   const paperW = 1024;

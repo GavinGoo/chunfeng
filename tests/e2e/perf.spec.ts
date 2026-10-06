@@ -68,13 +68,46 @@ test('答案页释放翻页引擎，不可见的无限动画都已暂停', async
   expect(outside).toEqual([]);
 });
 
+// 星点纹理画在 canvas 里，不做 CSS 平铺背景（16 §3.13，复盘 2026-10-06-reveal-tile-oom-flash）：
+// 字体加载会让整页重新栅格，三层星点若占瓦片显存，开书后的瓦片需求会超出上限，书页整片缺块闪黑
+test('星空远景与两层亮星是已画好的 canvas，不占瓦片显存', async ({ page }) => {
+  await gotoHome(page);
+  const textures = page.locator('[data-testid="ambient"] canvas[data-star-texture]');
+  await expect(textures).toHaveCount(3);
+  // 每层都画上了星点（图片加载完才画）：取左上 1024 px 见方，数不透明的像素
+  const minLit = () =>
+    textures.evaluateAll((list) =>
+      Math.min(
+        ...list.map((el) => {
+          const c = el as HTMLCanvasElement;
+          const ctx = c.getContext('2d');
+          if (!ctx || c.width === 0 || c.height === 0) return 0;
+          const { data } = ctx.getImageData(0, 0, Math.min(c.width, 1024), Math.min(c.height, 1024));
+          let lit = 0;
+          for (let i = 3; i < data.length; i += 4) if ((data[i] ?? 0) > 0) lit++;
+          return lit;
+        }),
+      ),
+    );
+  await expect.poll(minLit, { message: '画布上的星点像素' }).toBeGreaterThan(0);
+  // 背景里不再有星点 PNG 的 CSS 背景
+  const cssStars = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('[data-testid="ambient"] *'))
+      .map((el) => getComputedStyle(el).backgroundImage)
+      .filter((bg) => /stars\.png|glint-[ab]\.png/.test(bg)),
+  );
+  expect(cssStars).toEqual([]);
+});
+
 // 品质档位 lite（16 §3.12，D31）
 const ambient = '[data-testid="ambient"]';
+/** 微粒画布（星点纹理也是 canvas，见 16 §3.13，不计入） */
+const particles = `${ambient} canvas:not([data-star-texture])`;
 
 test('?tier=lite：没有微粒与光幕，亮星不呼吸，背景的旋转与漂移照常', async ({ page }) => {
   await gotoHome(page, '?tier=lite');
   await expect(page.locator(ambient)).toHaveAttribute('data-tier', 'lite');
-  await expect(page.locator(`${ambient} canvas`)).toHaveCount(0);
+  await expect(page.locator(particles)).toHaveCount(0);
   const names = await page.evaluate(
     (sel) =>
       document
@@ -106,7 +139,7 @@ test.describe('运行时降档', () => {
   test('首次翻页低于 50 fps：本次会话降为 lite，在书进入 open 时生效', async ({ page }) => {
     await gotoHome(page);
     await expect(page.locator(ambient)).toHaveAttribute('data-tier', 'full');
-    await expect(page.locator(`${ambient} canvas`)).toHaveCount(1);
+    await expect(page.locator(particles)).toHaveCount(1);
     const cdp = await page.context().newCDPSession(page);
     await page.getByRole('textbox').fill('要不要学滑板？');
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 20 });
@@ -117,7 +150,7 @@ test.describe('运行时降档', () => {
     await waitState(page, 'open', 60_000);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
     await expect(page.locator(ambient)).toHaveAttribute('data-tier', 'lite', { timeout: 5000 });
-    await expect(page.locator(`${ambient} canvas`)).toHaveCount(0);
+    await expect(page.locator(particles)).toHaveCount(0);
     expect(await page.evaluate(() => sessionStorage.getItem('chunfeng:perf-tier'))).toBe('lite');
     await cdp.detach();
   });

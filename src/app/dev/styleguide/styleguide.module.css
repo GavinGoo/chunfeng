@@ -122,8 +122,9 @@
   font-weight: 400;
   line-height: var(--lh-title);
   padding: var(--sp-4) var(--sp-6);
-  background: var(--cover-800) url("/textures/leather.webp") 0 0 / 256px;
-  background-blend-mode: multiply;
+  background:
+    url("/textures/leather-shade.webp") 0 0 / 256px,
+    var(--cover-800);
   border-radius: var(--radius-book);
 }
 
@@ -166,8 +167,9 @@
 }
 
 .leather {
-  background: var(--cover-800) url("/textures/leather.webp") 0 0 / 256px;
-  background-blend-mode: multiply;
+  background:
+    url("/textures/leather-shade.webp") 0 0 / 256px,
+    var(--cover-800);
 }
 
 .paperTexture {
